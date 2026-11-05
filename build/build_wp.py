@@ -59,6 +59,10 @@ def blocks(txt):
     return out
 
 IMGS={
+"Agent use cases by data schema":[
+ IMG("siem-agent-v2-05-use-case-matrix.jpg","Matrix of 18 agent use cases against seven normalized schemas and six Security Copilot plugin sources",
+ "Rows are agent use cases grouped by specialist family: identity, endpoint, network, cloud and audit, and cross-cutting. The blue columns are the seven normalized schemas, reached through custom Sentinel MCP tools; the navy columns are Security Copilot plugin sources. A solid dot is the main source for that agent and a ring is a context source. A lime tag marks a use case Microsoft already ships as a Security Copilot agent.",
+ "Figure 5. Agent use cases mapped to normalized schemas and Security Copilot plugins")],
 "Data normalization is key to hyperscaling agents":[
  IMG("siem-agent-v2-01-normalized.jpg","140 sources feed seven ASIM schemas, which 1,000 rules and 1,000 agents read",
  "Left to right: 140 raw sources grouped by the ASIM schema they map to, the seven schemas in the middle, then the two consumer fleets, 1,000 analytic rules (navy) and 1,000 agents (blue). Each source has one line into its schema, and every rule and agent reads only the schemas. The agents are grouped into four specialist types, one per schema family. Incidents from the rules start an orchestrator (one per incident), which hands work to the specialists, and everything they propose goes through the enforcer bar on the far right before it can change a system. That is the SOAR playbook split in three. Moving dots are events. Adding agents adds dots on the right and no lines on the left.",
@@ -96,6 +100,8 @@ refs=[("Service limits for Microsoft Sentinel","https://learn.microsoft.com/en-u
 ("Microsoft Sentinel MCP tools overview","https://learn.microsoft.com/azure/sentinel/datalake/sentinel-mcp-tools-overview","Microsoft Learn"),
 ("Foundry Agent Service quotas and limits","https://learn.microsoft.com/azure/foundry/agents/concepts/limits-quotas-regions","Microsoft Learn"),
 ("Automate prior authorization with AI agents","https://techcommunity.microsoft.com/t5/microsoft-foundry-blog/automate-prior-authorization-with-ai-agents-now-available-as-a/ba-p/4513432","Microsoft Foundry Blog"),
+("Microsoft Security Copilot plugins overview","https://learn.microsoft.com/en-us/copilot/security/plugin-overview","Microsoft Learn"),
+("Security Copilot agents overview","https://learn.microsoft.com/en-us/copilot/security/agents-overview","Microsoft Learn"),
 ("HL7 FHIR R4","https://hl7.org/fhir/R4/","HL7"),
 ("ONC Cures Act Final Rule","https://www.healthit.gov/topic/oncs-cures-act-final-rule","HealthIT.gov"),
 ("Interactive visual","https://broglock.github.io/siem-to-agent-normalization/","GitHub Pages"),
