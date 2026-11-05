@@ -101,8 +101,8 @@ reflist='<ul class="ref-list" style="margin:0;padding-left:22px">'+"".join(f'<li
 out.append(SEC(n,"References",reflist,num=False))
 introP="".join(blocks(intro))
 head=(f'<div class="intro-wrap" style="border-bottom:1px solid #e4ddd4;padding-bottom:36px;margin-bottom:44px"><h1 class="intro-title" style=\'{SERIF};font-size:38px;font-weight:700;color:#1c1917;line-height:1.25;margin-bottom:20px;letter-spacing:-0.3px\'>{inl(title)}</h1>'
- f'<div class="intro-body">{introP}</div><div class="intro-meta" style=\'{MONO};font-size:13px;color:#78716c;border-top:1px solid #e4ddd4;padding-top:16px;margin-top:8px;letter-spacing:0.05em\'>DAVID BROGGY  &middot;  2026-11-05  &middot;  MODELLED COUNTS, NOT A DEPLOYMENT</div></div>')
-foot=f'<footer class="footer" style=\'border-top:1px solid #e4ddd4;padding:24px 0 0;margin-top:36px;text-align:center;{MONO};font-size:12.5px;color:#78716c;letter-spacing:0.06em\' align="center">FIELD NOTES  &middot;  MODELLED COUNTS  &middot;  SIMPLE-SECURITY.CA</footer>'
+ f'<div class="intro-body">{introP}</div><div class="intro-meta" style=\'{MONO};font-size:13px;color:#78716c;border-top:1px solid #e4ddd4;padding-top:16px;margin-top:8px;letter-spacing:0.05em\'>DAVID BROGGY  &middot;  2026-11-05</div></div>')
+foot=f'<footer class="footer" style=\'border-top:1px solid #e4ddd4;padding:24px 0 0;margin-top:36px;text-align:center;{MONO};font-size:12.5px;color:#78716c;letter-spacing:0.06em\' align="center">FIELD NOTES  &middot;  SIMPLE-SECURITY.CA</footer>'
 page=('<div class="bleed" style="width:100%"><main class="main" style="padding:8px 0 50px;background:#f5f0e8"><div class="content-wrap" style="max-width:1400px;margin:0 auto">'+head+"".join(out)+foot+'</div></main></div>')
 content="<!-- wp:html -->\n"+page+"\n<!-- /wp:html -->"
 open("/home/claude/wp_styled.html","w").write(content)
