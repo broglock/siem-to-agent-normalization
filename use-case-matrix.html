@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent use cases mapped to data schemas</title>
+<style>
+:root{--navy:#05052F;--blue:#001AFF;--sky:#33A7FF;--pale:#CBE9FF;--lime:#CAFF00;--g1:#A5A5A5;--g2:#DCDCDD;--red:#C0182B;--bg:#F6F8FC}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--navy);background:var(--bg);font-size:15px;line-height:1.45}
+header{background:var(--navy);color:#fff;padding:22px 28px 18px;border-bottom:6px solid var(--lime)}
+header .brand{font-size:14px;color:var(--pale);letter-spacing:.04em}
+header h1{font-size:28px;font-weight:normal;margin:10px 0 4px}
+header p{margin:0;color:var(--pale);max-width:1000px}
+main{max-width:1400px;margin:0 auto;padding:20px 24px 40px}
+h2{color:var(--blue);font-weight:normal;font-size:22px;margin:26px 0 8px}
+.card{background:#fff;border:1px solid var(--g2);border-radius:8px;padding:16px}
+.howto{border-left:5px solid var(--sky)}
+.howto p{margin:4px 0}
+.ctrl{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:16px 0 10px}
+.seg{display:inline-flex;border:1px solid var(--blue);border-radius:6px;overflow:hidden;flex-wrap:wrap}
+.seg button{font:inherit;cursor:pointer;border:0;background:#fff;color:var(--blue);padding:7px 12px}
+.seg button.on{background:var(--blue);color:#fff}
+.legend{display:flex;gap:16px;font-size:13px;align-items:center;flex-wrap:wrap}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.wrap{overflow-x:auto;background:#fff;border:1px solid var(--g2);border-radius:8px}
+table{border-collapse:separate;border-spacing:0;width:100%;min-width:1180px}
+th,td{border-bottom:1px solid var(--g2);padding:0}
+thead th{position:sticky;top:0;z-index:2}
+.grp th{font-weight:normal;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;padding:8px 6px;color:#fff;text-align:center}
+.grp .g0{background:#fff;color:var(--navy);text-align:left;padding-left:14px}
+.grp .ga{background:var(--blue)}
+.grp .gb{background:var(--navy)}
+.cols th{background:#fff;font-weight:normal;font-size:12.5px;height:128px;vertical-align:bottom;cursor:pointer;width:46px;border-left:1px solid var(--g2)}
+.cols th.first{cursor:default;text-align:left;padding:8px 14px;width:auto;vertical-align:bottom;font-size:13px;color:#555;border-left:0}
+.cols th .v{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;padding:8px 0;margin:0 auto}
+.cols th.a .v{border-right:4px solid var(--lime)}
+.cols th.b .v{border-right:4px solid var(--sky)}
+.cols th.sel{background:var(--pale)}
+tbody td{border-left:1px solid var(--g2);text-align:center;height:40px}
+tbody td.uc{text-align:left;padding:6px 14px;border-left:0;cursor:pointer;min-width:320px}
+tbody td.uc b{font-weight:normal}
+tbody td.uc small{display:block;color:#666;font-size:12px}
+tbody td.uc .ms{display:inline-block;font-size:11px;background:var(--lime);color:var(--navy);border-radius:3px;padding:0 5px;margin-left:6px;vertical-align:1px}
+tr.fam td{background:#EEF1F8;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:#444;padding:6px 14px;height:auto;text-align:left;border-left:0}
+tbody tr.row:hover td{background:#F7FAFF}
+tbody tr.row.sel td{background:#EAF4FF}
+tbody tr.dim td{opacity:.22}
+td.colsel{background:#F2F8FF}
+.p,.s{display:inline-block;width:18px;height:18px;border-radius:50%;vertical-align:middle}
+.p{background:var(--blue)}
+.s{border:2.5px solid var(--sky);background:#fff}
+tfoot td{background:var(--navy);color:#fff;text-align:center;font-size:14px;height:44px;border-left:1px solid #2a2a55}
+tfoot td.uc{text-align:left;padding:6px 14px;border-left:0;font-size:13px}
+tfoot td span{display:block;font-size:10.5px;color:var(--pale)}
+.detail{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.detail h3{margin:0 0 8px;font-weight:normal;font-size:19px;color:var(--blue)}
+.detail dl{margin:0;display:grid;grid-template-columns:150px 1fr;gap:6px 12px;font-size:14px}
+.detail dt{color:#555}
+.detail dd{margin:0}
+.chips span{display:inline-block;border-radius:4px;padding:2px 8px;margin:2px 4px 2px 0;font-size:13px}
+.chips .cp{background:var(--blue);color:#fff}
+.chips .cs{border:1.5px solid var(--sky)}
+.note{font-size:13px;color:#444}
+.src{columns:2;font-size:13px}
+.src li{margin-bottom:4px;break-inside:avoid}
+a{color:var(--blue)}
+@media(max-width:900px){.detail{grid-template-columns:1fr}.src{columns:1}}
+</style>
+</head>
+<body>
+<header>
+<div class="brand">LEVELBLUE · FIELD NOTES</div>
+<h1>Agent use cases mapped to data schemas</h1>
+<p>Eighteen security agent use cases, each mapped to the normalized schemas and Security Copilot plugin sources it reads. The same seven schemas from the fleet visual serve every row.</p>
+</header>
+<main>
+
+<div class="card howto">
+<p><b>How to read it.</b> Each row is one specialist agent use case, grouped by the specialist families in the fleet visual (identity, endpoint, network, cloud and audit, plus cross-cutting). Each column is a data source the agent reads.</p>
+<p>The blue columns on the left are the seven normalized schemas: ASIM functions in the Sentinel analytics tier, or normalized tables in the data lake, reached by the agent through custom Sentinel MCP tools (saved KQL). The navy columns on the right are Security Copilot plugin sources, which already return a common shape for each Microsoft product.</p>
+<p>A solid dot means the agent's main question is answered from that source. A ring means the source adds context. The bottom row counts how many agents read each source: that count is the reuse normalization buys, since one parser or plugin serves all of them. A lime tag marks a use case Microsoft already ships as a Security Copilot agent.</p>
+<p>Click a column to highlight the agents that depend on it. Click a row for the trigger, tools and actions.</p>
+</div>
+
+<div class="ctrl">
+<div class="seg" id="fam"></div>
+<div class="legend"><span><i class="p"></i> main source</span><span><i class="s"></i> context</span><span><span class="ms" style="margin:0">Microsoft agent</span> similar agent ships</span></div>
+</div>
+
+<div class="wrap"><table id="mx"></table></div>
+
+<div class="detail" id="detail"></div>
+
+<h2>Notes</h2>
+<div class="card note">
+<p>Plugin columns list the Microsoft plugins Security Copilot documents: Microsoft Entra, Defender XDR, Intune, Purview, Defender Threat Intelligence and Defender External Attack Surface Management. Microsoft Sentinel reaches Security Copilot through its own plugin and through the Sentinel MCP server; in this matrix it is the route to the normalized schemas rather than a column of its own.</p>
+<p>A use case marked as a Microsoft agent means a built-in agent covers similar ground. It is still useful to build your own version when you need it to read your non-Microsoft sources through the normalized schemas, which the built-in agents may not.</p>
+<p>The mapping is a starting design, not a product capability list. Check each source's licensing and roles before you build: plugins need the product licensed in the tenant, and some, such as Sentinel and Intune, need a product role in addition to Security Copilot access.</p>
+</div>
+
+<h2>Sources</h2>
+<ul class="src card">
+<li><a href="https://learn.microsoft.com/en-us/copilot/security/plugin-overview">Security Copilot plugins overview</a></li>
+<li><a href="https://learn.microsoft.com/en-us/copilot/security/agents-overview">Security Copilot agents overview</a></li>
+<li><a href="https://learn.microsoft.com/en-us/copilot/security/whats-new-copilot-security">What's new in Security Copilot</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/sentinel/datalake/sentinel-mcp-tools-overview">Sentinel MCP tool collections</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/sentinel/datalake/sentinel-mcp-create-custom-tool">Create custom Sentinel MCP tools</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/sentinel/normalization">ASIM normalization</a></li>
+<li><a href="https://broglock.github.io/siem-to-agent-normalization/">Fleet visual: 1,000 rules and 1,000 agents on one schema</a></li>
+</ul>
+</main>
+
+<script>
+const COLS=[
+ {k:"auth",n:"Authentication",g:"a",d:"_Im_Authentication: sign-ins from Entra, Okta, AWS, VPNs and other identity sources"},
+ {k:"proc",n:"Process Event",g:"a",d:"_Im_ProcessEvent: process creation from Defender for Endpoint, Sysmon, other EDRs"},
+ {k:"net",n:"Network Session",g:"a",d:"_Im_NetworkSession: firewall and flow logs (Palo Alto, FortiGate, Azure Firewall)"},
+ {k:"dns",n:"DNS",g:"a",d:"_Im_Dns: DNS queries from Windows DNS, Infoblox, Umbrella"},
+ {k:"web",n:"Web Session",g:"a",d:"_Im_WebSession: proxy and secure web gateway logs (Zscaler, Netskope)"},
+ {k:"aud",n:"Audit Event",g:"a",d:"_Im_AuditEvent: admin and configuration changes (Azure Activity, CloudTrail, M365 audit)"},
+ {k:"file",n:"File Event",g:"a",d:"_Im_FileEvent: file create, modify, rename and delete events"},
+ {k:"entra",n:"Microsoft Entra",g:"b",d:"Users, groups, risky users, sign-in risk, Conditional Access, audit logs"},
+ {k:"xdr",n:"Defender XDR",g:"b",d:"Incidents, alerts, device and identity summaries, advanced hunting"},
+ {k:"intune",n:"Intune",g:"b",d:"Devices, compliance, configuration policies, apps"},
+ {k:"purview",n:"Purview",g:"b",d:"DLP alerts, insider risk, sensitivity labels"},
+ {k:"ti",n:"Defender TI",g:"b",d:"Indicators, intel profiles, threat analytics, vulnerability articles"},
+ {k:"easm",n:"Defender EASM",g:"b",d:"Internet-facing assets and exposures"}
+];
+const FAM=["Identity","Endpoint","Network","Cloud and audit","Cross-cutting"];
+// p: main source, s: context
+const UC=[
+ {f:0,n:"Password spray triage",q:"Did any account succeed after the spray, and from where?",p:["auth","entra"],s:["net","xdr","ti"],trig:"ASIM password spray rule over _Im_Authentication",tools:"Failed and successful sign-ins by source IP; risky user state; IP reputation",act:"Revoke sessions, block IP; disable account held for approval; protected accounts blocked"},
+ {f:0,n:"Anomalous sign-in review",q:"Is this unfamiliar location or device expected for this user?",p:["auth","entra"],s:["web","ti"],trig:"Entra ID Protection risk detection or impossible travel rule",tools:"User sign-in history across all identity sources; device and location baseline",act:"Confirm compromised or dismiss risk; require password reset with approval"},
+ {f:0,n:"MFA fatigue investigation",q:"Is a user being pushed repeated MFA prompts they did not start?",p:["auth","entra"],s:["aud"],trig:"Rule on repeated MFA denials followed by an approval",tools:"MFA result sequence per user; authentication method changes",act:"Revoke sessions; flag method change for review"},
+ {f:0,n:"Privileged role assignment review",q:"Was this admin role granted through the normal process?",p:["aud","entra"],s:["auth"],trig:"Audit rule on role assignment outside PIM",tools:"Role change events; who granted it; recent sign-ins of both accounts",act:"Open change ticket; remove role held for approval"},
+ {f:0,n:"Conditional Access gap review",q:"Which users and apps sign in without a policy applied?",p:["auth","entra"],s:[],trig:"Scheduled weekly run",tools:"Sign-ins with no CA policy applied; policy inventory",act:"Proposed policy changes for an administrator",ms:"Conditional Access Optimization Agent"},
+ {f:1,n:"Suspicious process chain",q:"Is this parent and child process pair malicious or admin activity?",p:["proc","xdr"],s:["file","net","intune"],trig:"Rule on LOLBin or script interpreter spawned by an Office app",tools:"Process tree; command lines; files written; outbound connections; device owner",act:"Isolate device held for approval; collect investigation package"},
+ {f:1,n:"Ransomware precursor check",q:"Are shadow copy deletion and mass renames happening together?",p:["file","proc","xdr"],s:["intune"],trig:"Rule on vssadmin or wbadmin plus high file rename rate",tools:"File events by host and time; process lineage; device compliance",act:"Isolate device (fast path, then human review); notify on-call"},
+ {f:1,n:"Exploited vulnerability exposure",q:"Which devices have a CVE that is being exploited right now?",p:["xdr","intune","ti"],s:["proc","easm"],trig:"New TI article on active exploitation",tools:"Vulnerable devices; exploit status; internet exposure",act:"Prioritized patch list; Intune remediation proposals",ms:"Vulnerability Remediation Agent (Intune)"},
+ {f:2,n:"Beaconing and C2 detection",q:"Is this host calling out on a regular interval to a new domain?",p:["net","dns","ti"],s:["web","xdr"],trig:"Rule on periodic connections to low-prevalence destinations",tools:"Connection timing by host and destination; DNS resolutions; domain reputation",act:"Block domain and IP; isolate host held for approval"},
+ {f:2,n:"DNS tunneling and DGA",q:"Do these queries look like data encoded in subdomains or generated names?",p:["dns"],s:["net","ti"],trig:"Rule on query length and entropy",tools:"Query names and volumes per host; domain age and reputation",act:"Sinkhole domain; open incident for endpoint review"},
+ {f:2,n:"Exfiltration to new destination",q:"Is this upload volume to a new destination normal for this user?",p:["net","web"],s:["file","purview","ti"],trig:"Rule on outbound bytes above baseline",tools:"Bytes by user and destination; files touched; data labels involved",act:"Block destination held for approval; notify data owner"},
+ {f:2,n:"Phishing click follow-up",q:"Who clicked, what loaded, and did anything sign in afterwards?",p:["web","xdr"],s:["dns","auth","ti"],trig:"User-reported phish or Defender for Office alert",tools:"Proxy hits on the URL; DNS lookups; sign-ins after the click; message trace",act:"Soft-delete message held for approval; reset affected users",ms:"Phishing Triage Agent (Defender)"},
+ {f:3,n:"Cloud admin change review",q:"Was this change to network rules, keys or logging expected?",p:["aud"],s:["auth","entra"],trig:"Rule on security-relevant changes in Azure Activity or CloudTrail",tools:"Change events by actor; actor sign-in context; change ticket lookup",act:"Revert change held for approval; open ticket"},
+ {f:3,n:"Mailbox rule and BEC check",q:"Did someone add forwarding or delete rules after a risky sign-in?",p:["aud","auth","xdr"],s:["entra"],trig:"Rule on new inbox rule with forward or delete action",tools:"Mailbox audit events; prior sign-ins; user risk",act:"Remove rule and revoke sessions held for approval"},
+ {f:3,n:"DLP alert triage",q:"Is this sensitive data movement a real policy breach?",p:["purview","file"],s:["web","aud"],trig:"Purview DLP alert",tools:"Alert details; file activity; destination; user history",act:"Close as false positive or escalate with summary",ms:"Alert Triage Agent (Purview DLP)"},
+ {f:3,n:"New external exposure check",q:"Is a newly seen internet-facing asset ours and is it protected?",p:["easm"],s:["net","aud","ti"],trig:"EASM new asset discovery",tools:"Asset details; firewall rules; deployment audit trail",act:"Assign owner; open hardening ticket"},
+ {f:4,n:"Incident summary and handoff",q:"What happened, what was done, and what is left for the analyst?",p:["xdr"],s:["auth","proc","net","ti"],trig:"Orchestrator closes or escalates an incident",tools:"Incident timeline; specialist verdicts; enforcer decisions",act:"Write summary to the incident; no system changes"},
+ {f:4,n:"Threat intel relevance check",q:"Does this new threat report match anything in our data?",p:["ti"],s:["net","dns","proc","easm"],trig:"New intel profile or threat analytics report",tools:"IOC and TTP sweep across normalized schemas",act:"Briefing with matched assets; hunting queries to save as tools",ms:"Threat Intelligence Briefing Agent"}
+];
+let famSel=-1, colSel=null, rowSel=0;
+const fb=document.getElementById('fam');
+["All"].concat(FAM).forEach((t,i)=>{const b=document.createElement('button');b.textContent=t;b.onclick=()=>{famSel=i-1;draw()};fb.appendChild(b)});
+function cell(u,k){return u.p.includes(k)?'<i class="p" title="main source"></i>':u.s.includes(k)?'<i class="s" title="context"></i>':''}
+function draw(){
+ [...fb.children].forEach((b,i)=>b.classList.toggle('on',i-1===famSel));
+ const na=COLS.filter(c=>c.g=="a").length, nb=COLS.length-na;
+ let h=`<thead><tr class="grp"><th class="g0"></th><th class="ga" colspan="${na}">Normalized schemas (ASIM, via Sentinel MCP tools)</th><th class="gb" colspan="${nb}">Security Copilot plugin sources</th></tr>`;
+ h+=`<tr class="cols"><th class="first">Agent use case<br><small>click a row or column</small></th>`+COLS.map(c=>`<th class="${c.g}${colSel===c.k?' sel':''}" data-k="${c.k}" title="${c.d}"><div class="v">${c.n}</div></th>`).join('')+`</tr></thead><tbody>`;
+ FAM.forEach((fn,fi)=>{
+  if(famSel>=0&&famSel!==fi)return;
+  h+=`<tr class="fam"><td colspan="${COLS.length+1}">${fn}</td></tr>`;
+  UC.forEach((u,i)=>{if(u.f!==fi)return;
+   const dim=colSel&&!(u.p.includes(colSel)||u.s.includes(colSel));
+   h+=`<tr class="row${i===rowSel?' sel':''}${dim?' dim':''}" data-i="${i}"><td class="uc"><b>${u.n}</b>${u.ms?'<span class="ms">Microsoft agent</span>':''}<small>${u.q}</small></td>`+COLS.map(c=>`<td class="${colSel===c.k?'colsel':''}">${cell(u,c.k)}</td>`).join('')+`</tr>`;});
+ });
+ const vis=UC.filter(u=>famSel<0||u.f===famSel);
+ h+=`</tbody><tfoot><tr><td class="uc">Agents reading this source (${vis.length} shown)</td>`+COLS.map(c=>{const n=vis.filter(u=>u.p.includes(c.k)||u.s.includes(c.k)).length;const m=vis.filter(u=>u.p.includes(c.k)).length;return `<td>${n}<span>${m} main</span></td>`}).join('')+`</tr></tfoot>`;
+ const t=document.getElementById('mx');t.innerHTML=h;
+ t.querySelectorAll('.cols th[data-k]').forEach(th=>th.onclick=()=>{colSel=colSel===th.dataset.k?null:th.dataset.k;draw()});
+ t.querySelectorAll('tr.row').forEach(tr=>tr.onclick=()=>{rowSel=+tr.dataset.i;draw()});
+ showDetail();
+}
+function showDetail(){
+ const u=UC[rowSel], nm=k=>COLS.find(c=>c.k===k).n;
+ let colInfo='';
+ if(colSel){const c=COLS.find(c=>c.k===colSel);const users=UC.filter(x=>x.p.includes(colSel)||x.s.includes(colSel));
+  colInfo=`<div class="card"><h3>${c.n}</h3><p class="note" style="margin-top:0">${c.d}</p><p>${users.length} of ${UC.length} agent use cases read this source, ${UC.filter(x=>x.p.includes(colSel)).length} as their main source. ${c.g=="a"?"One ASIM parser per data source keeps all of them working; a new source added to this schema reaches every one of them with no agent change.":"The plugin returns the same shape to every agent, so each agent needs no product-specific parsing."}</p><div class="chips">${users.map(x=>`<span class="${x.p.includes(colSel)?'cp':'cs'}">${x.n}</span>`).join('')}</div></div>`;}
+ else colInfo=`<div class="card"><h3>Reuse across the fleet</h3><p class="note" style="margin-top:0">Click a column heading to see which agents depend on that schema or plugin, and what one parser or plugin change would reach.</p></div>`;
+ document.getElementById('detail').innerHTML=`<div class="card"><h3>${u.n}</h3><dl>
+ <dt>Family</dt><dd>${FAM[u.f]} specialist</dd>
+ <dt>Question it answers</dt><dd>${u.q}</dd>
+ <dt>Trigger</dt><dd>${u.trig}</dd>
+ <dt>Tools it needs</dt><dd>${u.tools}</dd>
+ <dt>Main sources</dt><dd class="chips">${u.p.map(k=>`<span class="cp">${nm(k)}</span>`).join('')}</dd>
+ <dt>Context sources</dt><dd class="chips">${u.s.length?u.s.map(k=>`<span class="cs">${nm(k)}</span>`).join(''):'None'}</dd>
+ <dt>Proposed actions</dt><dd>${u.act}</dd>
+ ${u.ms?`<dt>Similar Microsoft agent</dt><dd>${u.ms}</dd>`:''}
+ </dl></div>${colInfo}`;
+}
+draw();
+</script>
+</body>
+</html>
