@@ -1,7 +1,7 @@
 import re,html,json
 MONO='font-family:"IBM Plex Mono", "Courier New", monospace'
 SERIF='font-family:"Lora", Georgia, serif'
-CODE=f'<code style=\'{MONO};font-size:12px;background:#f0ebe0;border:1px solid #e4ddd4;padding:0 4px;color:#1c1917;white-space:nowrap\'>'
+CODE=f'<code style=\'{MONO};font-size:15px;background:#f0ebe0;border:1px solid #e4ddd4;padding:0 4px;color:#1c1917;white-space:nowrap\'>'
 A='style="color:#b91c1c;text-decoration:none" target="_blank" rel="noopener"'
 PAGES="https://broglock.github.io/siem-to-agent-normalization"
 def inl(t):
@@ -9,26 +9,26 @@ def inl(t):
     t=re.sub(r'`([^`]+)`',lambda m:CODE+m.group(1)+'</code>',t)
     t=re.sub(r'(https?://[^\s<)]+[^\s<).,])',lambda m:f'<a href="{m.group(1)}" {A}>{m.group(1)}</a>',t)
     return t
-P=lambda t:f'<p class="body-p" style="font-size:13.5px;color:#44403c;line-height:1.75;margin-bottom:16px">{inl(t)}</p>'
+P=lambda t:f'<p class="body-p" style="font-size:18px;color:#44403c;line-height:1.75;margin-bottom:16px">{inl(t)}</p>'
 def UL(items):
-    return '<ul class="fact-list" style="margin:0 0 22px 0;padding-left:22px">'+"".join(f'<li class="li" style="padding:5px 0 5px 4px;font-size:13.5px;color:#44403c;line-height:1.7">{inl(i)}</li>' for i in items)+'</ul>'
+    return '<ul class="fact-list" style="margin:0 0 22px 0;padding-left:22px">'+"".join(f'<li class="li" style="padding:5px 0 5px 4px;font-size:18px;color:#44403c;line-height:1.7">{inl(i)}</li>' for i in items)+'</ul>'
 def TABLE(rows):
-    th=f"{MONO};font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#78716c;padding:8px 10px;text-align:left;font-weight:500"
-    td="padding:9px 10px;vertical-align:top;line-height:1.55;font-size:13px;color:#44403c"
-    h='<table class="spec-table" style="width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:24px" width="100%"><thead><tr style="border-bottom:2px solid #b5aca0">'+"".join(f"<th style='{th}' align=\"left\">{inl(c)}</th>" for c in rows[0])+'</tr></thead><tbody>'
+    th=f"{MONO};font-size:12.5px;letter-spacing:0.08em;text-transform:uppercase;color:#78716c;padding:8px 10px;text-align:left;font-weight:500"
+    td="padding:9px 10px;vertical-align:top;line-height:1.55;font-size:16.5px;color:#44403c"
+    h='<table class="spec-table" style="width:100%;border-collapse:collapse;font-size:16px;margin-bottom:24px" width="100%"><thead><tr style="border-bottom:2px solid #b5aca0">'+"".join(f"<th style='{th}' align=\"left\">{inl(c)}</th>" for c in rows[0])+'</tr></thead><tbody>'
     h+="".join('<tr style="border-bottom:1px solid #e4ddd4">'+"".join(f'<td style="{td}" valign="top">{inl(c)}</td>' for c in r)+'</tr>' for r in rows[1:])
     return h+'</tbody></table>'
 def PRE(code):
-    return f'<pre style=\'{MONO};font-size:12px;background:#f0ebe0;border:1px solid #e4ddd4;padding:12px 14px;color:#1c1917;line-height:1.55;overflow-x:auto;margin:0 0 20px\'>{html.escape(code)}</pre>'
+    return f'<pre style=\'{MONO};font-size:15px;background:#f0ebe0;border:1px solid #e4ddd4;padding:12px 14px;color:#1c1917;line-height:1.55;overflow-x:auto;margin:0 0 20px\'>{html.escape(code)}</pre>'
 def IMG(file,alt,read):
-    return (f'<img class="shot" src="{PAGES}/img/{file}" alt="{html.escape(alt)}" style="width:100%;display:block;border:1px solid #d6cfc4;margin:14px 0 6px" width="100%">'
-     f'<p class="shot-cap" style=\'{MONO};font-size:10.5px;color:#78716c;letter-spacing:0.04em;margin-bottom:6px\'>HOW TO READ IT</p>'
-     f'<p class="shot-cap" style="font-size:12.5px;color:#44403c;line-height:1.65;margin-bottom:22px">{inl(read)}</p>')
+    return (f'<img class="shot" src="https://simplesecurityca.wordpress.com/wp-content/uploads/2026/11/{file}" alt="{html.escape(alt)}" style="width:100%;display:block;border:1px solid #d6cfc4;margin:14px 0 6px" width="100%">'
+     f'<p class="shot-cap" style=\'{MONO};font-size:13px;color:#78716c;letter-spacing:0.04em;margin-bottom:6px\'>HOW TO READ IT</p>'
+     f'<p class="shot-cap" style="font-size:16.5px;color:#44403c;line-height:1.65;margin-bottom:22px">{inl(read)}</p>')
 def SEC(n,title,body,num=True):
-    bg=f'<div class="section-bg-num" style=\'position:absolute;top:-10px;right:0;{SERIF};font-size:80px;font-weight:700;color:#1c1917;opacity:0.05;line-height:1\'>{n:02d}</div>' if num else ''
+    bg=f'<div class="section-bg-num" style=\'position:absolute;top:-10px;right:0;{SERIF};font-size:110px;font-weight:700;color:#1c1917;opacity:0.05;line-height:1\'>{n:02d}</div>' if num else ''
     return (f'<section class="section-wrap" style="margin-bottom:52px;position:relative"><div class="section-header" style="position:relative;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid #e4ddd4">{bg}'
-     f'<div class="section-eyebrow" style=\'{MONO};font-size:10px;letter-spacing:0.12em;color:#b91c1c;text-transform:uppercase;margin-bottom:4px\'>{n:02d} /</div>'
-     f'<h2 class="section-title" style=\'{SERIF};font-size:22px;font-weight:600;color:#1c1917;line-height:1.25\'>{inl(title)}</h2></div>{body}</section>')
+     f'<div class="section-eyebrow" style=\'{MONO};font-size:13px;letter-spacing:0.12em;color:#b91c1c;text-transform:uppercase;margin-bottom:4px\'>{n:02d} /</div>'
+     f'<h2 class="section-title" style=\'{SERIF};font-size:30px;font-weight:600;color:#1c1917;line-height:1.25\'>{inl(title)}</h2></div>{body}</section>')
 
 md=open("/home/claude/repo/post.md").read()
 title=md.split("\n",1)[0][2:]
@@ -60,10 +60,10 @@ def blocks(txt):
 
 IMGS={
 "Normalization is what lets the agent count grow":[
- IMG("01-normalized.png","140 sources feed seven ASIM schemas, which 1,000 rules and 1,000 agents read",
+ IMG("siem-agent-01-normalized.jpg","140 sources feed seven ASIM schemas, which 1,000 rules and 1,000 agents read",
  "Left to right: 140 raw sources grouped by the ASIM schema they map to, the seven schemas in the middle, then the two consumer fleets, 1,000 analytic rules (navy) and 1,000 agents (blue). Each source has one line into its schema, and every rule and agent reads only the schemas. Moving dots are events. Adding agents adds dots on the right and no lines on the left."),
- IMG("02-not-normalized.png","Without the schema layer every consumer connects to every source in its schema",
- "The same 140 sources and 2,000 consumers with the schema layer removed. Every consumer now needs a line to each source in its schema; the drawing shows a sample of the 40,000. Amber dots are consumers working out a raw format themselves. Red dots read a FortiGate field that was just renamed and are now broken.")]}
+ IMG("siem-agent-02-not-normalized.jpg","Without the schema layer every consumer connects to every source in its schema",
+ "The same 140 sources and 2,000 consumers with the schema layer removed. Every consumer now needs a line to each source in its schema; the drawing shows a sample of the 40,000. Red dots are the rules and agents that read a FortiGate field directly; the field was just renamed, so they are now broken.")]}
 ARCH_TITLE="Practical architecture"
 ARCH=[P("In Microsoft terms the design has five layers, and the order matters. Sources are onboarded and normalized first; the rule fleet reads the normalized store directly; agents reach it only through a tool layer; an agent runtime hosts the agent types and their concurrent runs; and an enforcer stands between proposed actions and anything that changes a system. Identity and observability apply to every layer."),
  UL(["Normalized data: Microsoft Sentinel's analytics tier and data lake with ASIM parsers. This is where the 1,000 rules run.",
@@ -71,10 +71,10 @@ ARCH=[P("In Microsoft terms the design has five layers, and the order matters. S
   "Agent runtime: Microsoft Foundry Agent Service for the fleet, which Microsoft documents as having no limit on the number of agents in a project, with rate limits applied at the model deployment. Security Copilot hosts a few agent types embedded in Defender and Entra and is billed in Security Compute Units.",
   "Actions and oversight: Logic Apps playbooks with approval steps, a protected-account watchlist and blast-radius limits, then Defender and Entra response actions.",
   "Identity and observability: an Entra Agent ID per agent group, OpenTelemetry traces to Application Insights, and agent activity written back to Sentinel as a log source."]),
- IMG("03-architecture-security.png","Security architecture: sources, Sentinel with ASIM, Sentinel MCP server, Foundry agents, enforcer",
+ IMG("siem-agent-03-architecture-security.jpg","Security architecture: sources, Sentinel with ASIM, Sentinel MCP server, Foundry agents, enforcer",
  "Left to right. Six source types feed the normalized store (the lime cylinder: Sentinel analytics tier and data lake with the seven ASIM schemas). The rule fleet reads it directly, and the dashed navy line shows incidents from rules starting agent work. Agents reach the data only through the Sentinel MCP server in the middle. Proposed actions pass through the enforcer before response actions run. The two bands at the bottom apply to every layer; the grey dashed line is agent activity logged back to Sentinel."),
  P("The healthcare version uses the same layers. The Azure Health Data Services FHIR service is the normalized store, with $convert-data turning HL7 v2 and C-CDA into FHIR resources and the MedTech service mapping device data to Observation. A FHIR MCP server using SMART Backend Services authentication is the tool layer, alongside reference servers for ICD-10 codes, the NPI Registry and CMS coverage policies. Foundry hosts the agents; Microsoft publishes a prior authorization multi-agent accelerator with four hosted agents as a Foundry template. A clinician approves any order, payer submission or record write-back."),
- IMG("04-architecture-healthcare.png","Healthcare architecture: clinical systems, FHIR service, FHIR MCP server, Foundry agents, clinician review",
+ IMG("siem-agent-04-architecture-healthcare.jpg","Healthcare architecture: clinical systems, FHIR service, FHIR MCP server, Foundry agents, clinician review",
  "Same layout as the security diagram. Clinical systems on the left feed the FHIR service, which holds seven FHIR resource types. Decision support rules read FHIR directly; agents reach it through the FHIR MCP server. Proposed actions stop at clinician review, and approved changes are written back through the FHIR API. FHIR service audit logs record every agent read and write.")]
 
 out=[];n=0
@@ -100,12 +100,12 @@ refs=[("Introducing Infinity: a runtime for extreme agent concurrency","https://
 ("Interactive visual","https://broglock.github.io/siem-to-agent-normalization/","GitHub Pages"),
 ("Project repository: post, visual and triage_mesh.py","https://github.com/broglock/siem-to-agent-normalization","GitHub")]
 n+=1
-reflist='<ul class="ref-list" style="margin:0;padding-left:22px">'+"".join(f'<li style="padding:6px 0;border-bottom:1px solid #e4ddd4;font-size:12.5px;color:#44403c"><a href="{u}" {A}>{html.escape(t)}</a><span class="ref-src" style=\'{MONO};font-size:10px;color:#78716c;margin-left:8px\'>{s}</span></li>' for t,u,s in refs)+'</ul>'
+reflist='<ul class="ref-list" style="margin:0;padding-left:22px">'+"".join(f'<li style="padding:6px 0;border-bottom:1px solid #e4ddd4;font-size:16.5px;color:#44403c"><a href="{u}" {A}>{html.escape(t)}</a><span class="ref-src" style=\'{MONO};font-size:12.5px;color:#78716c;margin-left:8px\'>{s}</span></li>' for t,u,s in refs)+'</ul>'
 out.append(SEC(n,"References",reflist,num=False))
 introP="".join(blocks(intro))
-head=(f'<div class="intro-wrap" style="border-bottom:1px solid #e4ddd4;padding-bottom:36px;margin-bottom:44px"><h1 class="intro-title" style=\'{SERIF};font-size:28px;font-weight:700;color:#1c1917;line-height:1.25;margin-bottom:20px;letter-spacing:-0.3px\'>{inl(title)}</h1>'
- f'<div class="intro-body">{introP}</div><div class="intro-meta" style=\'{MONO};font-size:10px;color:#78716c;border-top:1px solid #e4ddd4;padding-top:16px;margin-top:8px;letter-spacing:0.05em\'>DAVID BROGGY  &middot;  2026-11-05  &middot;  MODELLED COUNTS, NOT A DEPLOYMENT</div></div>')
-foot=f'<footer class="footer" style=\'border-top:1px solid #e4ddd4;padding:24px 0 0;margin-top:36px;text-align:center;{MONO};font-size:10px;color:#78716c;letter-spacing:0.06em\' align="center">FIELD NOTES  &middot;  MODELLED COUNTS  &middot;  SIMPLE-SECURITY.CA</footer>'
+head=(f'<div class="intro-wrap" style="border-bottom:1px solid #e4ddd4;padding-bottom:36px;margin-bottom:44px"><h1 class="intro-title" style=\'{SERIF};font-size:38px;font-weight:700;color:#1c1917;line-height:1.25;margin-bottom:20px;letter-spacing:-0.3px\'>{inl(title)}</h1>'
+ f'<div class="intro-body">{introP}</div><div class="intro-meta" style=\'{MONO};font-size:13px;color:#78716c;border-top:1px solid #e4ddd4;padding-top:16px;margin-top:8px;letter-spacing:0.05em\'>DAVID BROGGY  &middot;  2026-11-05  &middot;  MODELLED COUNTS, NOT A DEPLOYMENT</div></div>')
+foot=f'<footer class="footer" style=\'border-top:1px solid #e4ddd4;padding:24px 0 0;margin-top:36px;text-align:center;{MONO};font-size:12.5px;color:#78716c;letter-spacing:0.06em\' align="center">FIELD NOTES  &middot;  MODELLED COUNTS  &middot;  SIMPLE-SECURITY.CA</footer>'
 page=('<div class="bleed" style="width:100%"><main class="main" style="padding:8px 0 50px;background:#f5f0e8"><div class="content-wrap" style="max-width:1400px;margin:0 auto">'+head+"".join(out)+foot+'</div></main></div>')
 content="<!-- wp:html -->\n"+page+"\n<!-- /wp:html -->"
 open("/home/claude/wp_styled.html","w").write(content)
