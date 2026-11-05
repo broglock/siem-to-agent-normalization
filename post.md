@@ -110,7 +110,7 @@ Skills to add:
 - Defending against prompt injection from log content.
 - Designing an enforcer as code, separate from the agents it controls.
 
-## The same pattern in healthcare
+## A use case: Hyperscale agentic use for healthcare
 
 Hospital networks have the same structure. Patient data arrives from EHR registration, lab systems sending HL7 v2 results, admit, discharge and transfer feeds, pharmacy and e-prescribing systems, radiology and pathology, and claims. HL7 FHIR plays the role ASIM plays in Sentinel: each system is mapped once into FHIR resources such as Patient, Observation, Encounter, MedicationRequest, Condition, Procedure and DiagnosticReport, with standard codes (LOINC, RxNorm, ICD-10). FHIR R4 is the version required for patient access APIs in certified US EHR technology under the ONC Cures Act Final Rule.
 
