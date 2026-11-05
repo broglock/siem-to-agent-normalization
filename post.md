@@ -10,6 +10,8 @@ Agents are consumers of the same data, and the same arithmetic applies. Without 
 
 With the normalized layer, the ASIM parsers are KQL functions, so the function an analytic rule calls is the same function an agent's query tool calls. Adding the 1,001st agent requires no new parser and no new integration. Adding a source requires one parser, and every existing rule and agent covers it. A field rename at a source is fixed once, in its parser. The number of agents is then limited by model capacity and query limits, not by integration work. The Log Analytics query API, for example, runs 5 concurrent queries per identity and queues up to 200 before returning HTTP 429, so query load is planned across agent identities the way rule load is planned across workspaces.
 
+A common objection is that MCP already handles this. MCP standardizes how an agent finds and calls a tool: the transport, the tool description, and a JSON schema for each tool's inputs and, optionally, its outputs. Each server author chooses that schema. The protocol has no shared model for a sign-in, a firewall session or a lab result, so an MCP tool that queries a raw table returns that table's field names, and thirty authentication sources behind thirty MCP tools are still thirty formats. In the architecture later in this post, MCP is the tool layer that carries the data to agents; ASIM or FHIR defines its shape.
+
 The work that makes this possible is existing SIEM work: onboarding sources, writing and testing parsers, maintaining schema coverage, and monitoring connector health. That work does not change when the consumers are agents. It becomes the precondition for running them at scale.
 
 ## Component mapping
