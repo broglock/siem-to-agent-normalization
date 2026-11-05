@@ -1,8 +1,8 @@
 # Why your SIEM engineer might be your next AI hyperscale engineer
 
-A multi-agent system that processes security events has the same outer shape as a SIEM pipeline. Events are collected, queued, normalized, evaluated and acted on. What changes is the processing node: a deterministic rule is replaced, or supplemented, by a model call that returns structured output and can call tools. The part of SIEM work that matters most at agent scale is normalization. A normalized schema is what lets a thousand correlation rules read hundreds of sources, and it is what lets any number of agents use the same data without each agent handling each source format. This post covers that first, then maps the rest of a SIEM pipeline to its agent equivalent, describes a three-role design (orchestrator, specialists, enforcer) for alert triage, and covers the runtime work AWS published on October 23, 2026 that makes large numbers of waiting agents cheap to host. An interactive visual shows 1,000 rules and 1,000 agents on the same normalized layer, with and without it.
+A multi-agent system that processes security events has the same outer shape as a SIEM pipeline. Events are collected, queued, normalized, evaluated and acted on. What changes is the processing node: a deterministic rule is replaced, or supplemented, by a model call that returns structured output and can call tools. The part of SIEM work that matters most at agent scale is normalization. A normalized schema is what lets a thousand correlation rules read hundreds of sources, and it is what lets any number of agents use the same data without each agent handling each source format. This post covers that first, then maps the rest of a SIEM pipeline to its agent equivalent, and describes a three-role design (orchestrator, specialists, enforcer) for alert triage. An interactive visual shows 1,000 rules and 1,000 agents on the same normalized layer, with and without it.
 
-## Normalization is what lets the agent count grow
+## Data normalization is key to hyperscaling agents
 
 A SIEM with 140 sources and 1,000 analytic rules does not have 20,000 integrations, which is what it would take for each rule to read the 20 or so raw sources in its schema directly. Each source has one parser into a common schema such as ASIM or the Splunk CIM, and each rule is written once against the schema. In Microsoft Sentinel a rule that queries `_Im_Authentication` covers Entra ID, Okta, AWS CloudTrail and every other authentication source with a parser, including sources added after the rule was written. The integration count is one parser per source, and the rules add none. (A standard Sentinel workspace allows 512 enabled scheduled rules; 1,000 needs a dedicated cluster, which allows 1,024, or a second workspace.)
 
@@ -16,18 +16,18 @@ The work that makes this possible is existing SIEM work: onboarding sources, wri
 
 | Dimension | SIEM pipeline | Multi-agent pipeline |
 |---|---|---|
-| Runtime | Collection and indexing tier (Splunk, Elastic, Microsoft Sentinel, with Cribl or Vector in front) | Agent runtime (for example AWS Infinity or Amazon Bedrock AgentCore), which schedules model calls and tool calls |
+| Runtime | Collection and indexing tier (Splunk, Elastic, Microsoft Sentinel, with Cribl or Vector in front) | Agent runtime (for example Microsoft Foundry Agent Service or Amazon Bedrock AgentCore), which schedules model calls and tool calls |
 | Unit of work | A log event: a structured or semi-structured record of a state change | A message on an agent's input queue: an event, a tool result or a request, with a schema |
 | Normalization | Parsers and data models (ASIM, Splunk CIM, grok patterns) | The same parsers and schemas, exposed to agents as query tools, plus a schema contract (a Pydantic model or JSON Schema) on each agent's inputs and outputs |
 | Detection | Analytic rule or saved search: a fixed condition | Specialist agent: a system prompt, a scoped set of tools and a typed verdict |
-| Transport | Kafka, Event Hubs, a forwarder queue, partitioned by key | Per-thread input queues; Infinity's AWS reference uses SQS FIFO with one message group per thread |
+| Transport | Kafka, Event Hubs, a forwarder queue, partitioned by key | Per-investigation input queues, processed in order for each investigation and in parallel across them |
 | Response | SOAR playbook or Logic App with a fixed branch tree | Tool calls proposed by agents and approved or rejected by an enforcer |
 | Testing | Detection-as-code with sample logs and expected matches | Evaluation sets: replayed incidents with expected verdicts and expected actions |
 | Cost control | Ingestion tiers, data lake versus analytics tier, retention | Token budgets, model tiering, and suspending agents while they wait on tools |
 
 The normalization, transport, ordering and cost rows are where SIEM experience transfers almost directly. The detection and response rows are where the work changes.
 
-## The schema contract inside each agent
+## Agent data stream schema example
 
 A SIEM rule depends on field names. If a custom application changes `user_id` to `uid`, the parser still runs, the user field comes back empty, and the analytic rule stops matching. Nothing errors. The detection goes quiet and the gap is found later in a coverage review, or after an incident.
 
@@ -54,7 +54,7 @@ When an event fails validation, the pipeline has a choice a SIEM parser does not
 
 The skills that apply here are the ones SIEM engineers already use: knowing the target schema (ASIM or CIM), writing field-level data quality checks, and testing parsers against real samples before a source goes live.
 
-## Correlation rules become specialist agents, with the rules kept in front
+## Correlation rules in SIEM are similar to agent logic
 
 An analytic rule is cheap, fast and deterministic. It runs in milliseconds, costs nothing per evaluation beyond the query, and gives the same answer every time. A model call takes seconds, costs tokens and can return different answers for the same input. Replacing every rule with an agent would raise cost and lower predictability for detections that already work.
 
@@ -66,7 +66,7 @@ A practical design keeps the analytic rules. Rules filter and score the high-vol
 
 Each specialist has one job, its own system prompt, and only the tools that job needs. An identity specialist can query `SigninLogs` and `AuditLogs`. An endpoint specialist can query `DeviceProcessEvents`. An email specialist can query `EmailEvents` and `UrlClickEvents`. The scoping is the same least-privilege work done today for a Logic App's managed identity or a Splunk service account.
 
-## SOAR playbooks become an orchestrator, specialists and an enforcer
+## SOAR playbooks vs agentic orchestrator, specialists, and enforcer
 
 A SOAR playbook encodes every branch in advance. The agent version splits that work across three roles:
 
@@ -79,24 +79,6 @@ The enforcer should be code, not a model. It applies fixed rules: an allowlist o
 The enforcer matters more in security than in most agent deployments because log content is attacker-controlled. A user agent string, an email body, a file name or a command line can contain text written to instruct a model. A specialist that reads a phishing email is reading the attacker's words. Treat every field that came from a log as untrusted input, keep it out of system prompts, and rely on the enforcer, not the specialist's judgment, to stop an action the attacker's text talked the model into proposing.
 
 Each agent should also have its own identity, for example a Microsoft Entra Agent ID, so that its queries and actions appear in sign-in and audit logs under a name that can be monitored, scoped by Conditional Access, and disabled. The agent pipeline becomes a log source for the SIEM it supports.
-
-## Waiting is the main cost, and runtimes now handle it
-
-A triage agent spends most of its time waiting: on a KQL query, a threat intelligence lookup, an API call, or a human approval that may take hours. If each agent holds a process or container while it waits, hosting cost grows with the number of open investigations rather than the amount of work being done.
-
-On October 23, 2026, AWS published Infinity, an agent runtime written in Rust and released under Apache 2.0 as part of the Hydro project, a collaboration between AWS and UC Berkeley. AWS describes it as an early research release. The relevant design points:
-
-- An agent runs as a series of bounded slices. In one slice the runtime loads the agent's conversation history from a store, runs one model completion, saves the result, dispatches at most one tool call, and ends. The slice never blocks on the tool.
-- A tool starts its work and returns at once. When the work finishes, the tool sends the result to the agent's input queue, which starts the next slice. A 100 millisecond lookup and a three-day approval use the same code path.
-- Messages carry a thread ID. Messages for one thread are processed in order; different threads run in parallel. This is the same ordering model as a partition key on Event Hubs or Kafka.
-- Multi-agent work uses built-in tools: `spawn_thread` starts a child agent with its own queue, `report_to_parent` sends findings back, and `close_thread` ends the child. This maps directly to an orchestrator starting specialists.
-- Agents do not contain their own model. Each agent is its history plus calls to a shared model provider.
-- The tool protocol, the Reactive Agent Protocol (RAP), serves tools over the network without holding a connection open. The repository states that existing MCP servers work through a compatibility layer.
-- The AWS reference deployment uses an SQS FIFO queue as the input queue, Lambda to run each slice, Aurora DSQL for conversation history, and DynamoDB for deduplication state.
-
-The benchmark behind the widely repeated figure ran 80,000 agents, 20 turns each, on one thread of an AMD EPYC 9R14 with in-memory stores and a simulated model. Resident memory grew at about 100 KB per idle agent, most of it conversation history. The statement that about 75,000 agents fit in 8 GB, the memory of a Raspberry Pi 5, is an extrapolation from that rate. It describes idle agents waiting on tools, not 75,000 agents generating tokens, and the per-agent figure grows as histories get longer.
-
-For a SIEM engineer the pattern is familiar. Forwarders buffer to disk instead of holding connections. Enrichment lookups run asynchronously. State lives in a store, not in the worker. The runtime applies the same discipline to agents.
 
 ## Testing and operating the pipeline
 
@@ -140,9 +122,6 @@ A runnable Python sketch of the triage design described earlier, `triage_mesh.py
 
 ## References
 
-- AWS Open Source Blog, "Introducing Infinity: a runtime for extreme agent concurrency," October 23, 2026: https://aws.amazon.com/blogs/opensource/introducing-infinity-a-runtime-for-extreme-agent-concurrency/
-- Infinity repository: https://github.com/hydro-project/infinity
-- Hydro project: https://hydro.run
 - HL7 FHIR R4: https://hl7.org/fhir/R4/
 - ONC Cures Act Final Rule: https://www.healthit.gov/topic/oncs-cures-act-final-rule
 - Microsoft Sentinel service limits: https://learn.microsoft.com/en-us/azure/sentinel/sentinel-service-limits

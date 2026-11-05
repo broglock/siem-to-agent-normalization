@@ -59,7 +59,7 @@ def blocks(txt):
     return out
 
 IMGS={
-"Normalization is what lets the agent count grow":[
+"Data normalization is key to hyperscaling agents":[
  IMG("siem-agent-01-normalized.jpg","140 sources feed seven ASIM schemas, which 1,000 rules and 1,000 agents read",
  "Left to right: 140 raw sources grouped by the ASIM schema they map to, the seven schemas in the middle, then the two consumer fleets, 1,000 analytic rules (navy) and 1,000 agents (blue). Each source has one line into its schema, and every rule and agent reads only the schemas. Moving dots are events. Adding agents adds dots on the right and no lines on the left."),
  IMG("siem-agent-02-not-normalized.jpg","Without the schema layer every consumer connects to every source in its schema",
@@ -87,10 +87,7 @@ for t,b in secs:
     bl=blocks(b)
     if t in IMGS: bl=bl[:1]+IMGS[t][:1]+bl[1:2]+IMGS[t][1:]+bl[2:]
     out.append(SEC(n,t,"".join(bl)))
-refs=[("Introducing Infinity: a runtime for extreme agent concurrency","https://aws.amazon.com/blogs/opensource/introducing-infinity-a-runtime-for-extreme-agent-concurrency/","AWS Open Source Blog"),
-("Infinity repository","https://github.com/hydro-project/infinity","GitHub"),
-("Hydro project","https://hydro.run","Hydro"),
-("Service limits for Microsoft Sentinel","https://learn.microsoft.com/en-us/azure/sentinel/sentinel-service-limits","Microsoft Learn"),
+refs=[("Service limits for Microsoft Sentinel","https://learn.microsoft.com/en-us/azure/sentinel/sentinel-service-limits","Microsoft Learn"),
 ("Azure Monitor service limits","https://learn.microsoft.com/en-us/azure/azure-monitor/service-limits","Microsoft Learn"),
 ("Microsoft Sentinel MCP tools overview","https://learn.microsoft.com/azure/sentinel/datalake/sentinel-mcp-tools-overview","Microsoft Learn"),
 ("Foundry Agent Service quotas and limits","https://learn.microsoft.com/azure/foundry/agents/concepts/limits-quotas-regions","Microsoft Learn"),
