@@ -16,6 +16,8 @@ The work that makes this possible is existing SIEM work: onboarding sources, wri
 
 ## Component mapping
 
+Each part of a SIEM pipeline has a counterpart in a multi-agent pipeline. The table lists them side by side.
+
 | Dimension | SIEM pipeline | Multi-agent pipeline |
 |---|---|---|
 | Runtime | Collection and indexing tier (Splunk, Elastic, Microsoft Sentinel, with Cribl or Vector in front) | Agent runtime (for example Microsoft Foundry Agent Service or Amazon Bedrock AgentCore), which schedules model calls and tool calls |
