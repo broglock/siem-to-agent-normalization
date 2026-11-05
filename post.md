@@ -123,9 +123,9 @@ The accompanying page draws 140 raw sources grouped by ASIM schema, the seven sc
 The visual is at https://broglock.github.io/siem-to-agent-normalization/ and the source, including this post, is at https://github.com/broglock/siem-to-agent-normalization.
 
 
-## Agent use cases by data schema
+## Security agent use cases by data schema
 
-A second page maps 18 agent use cases to the data each one reads. The columns are the seven normalized schemas from the visual (Authentication, Process Event, Network Session, DNS, Web Session, Audit Event and File Event), which agents reach through custom Sentinel MCP tools, and six Security Copilot plugin sources: Microsoft Entra, Defender XDR, Intune, Purview, Defender Threat Intelligence and Defender External Attack Surface Management. A solid dot marks the main source for a use case and a ring marks a context source. The bottom row counts the agents that read each source.
+A second page maps 18 security agent use cases to the data each one reads. The columns are the seven normalized schemas from the visual (Authentication, Process Event, Network Session, DNS, Web Session, Audit Event and File Event), which agents reach through custom Sentinel MCP tools, and six Security Copilot plugin sources: Microsoft Entra, Defender XDR, Intune, Purview, Defender Threat Intelligence and Defender External Attack Surface Management. A solid dot marks the main source for a use case and a ring marks a context source. The bottom row counts the agents that read each source.
 
 Five of the use cases overlap agents Microsoft already ships in Security Copilot: Conditional Access Optimization, Vulnerability Remediation, Phishing Triage, Purview DLP alert triage and Threat Intelligence Briefing. Building your own version is still useful when it needs to read non-Microsoft sources through the normalized schemas. Selecting a row on the page shows its trigger rule, the tools it needs and the actions it proposes. The matrix is at https://broglock.github.io/siem-to-agent-normalization/use-case-matrix.html.
 
