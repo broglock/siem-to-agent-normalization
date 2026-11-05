@@ -20,8 +20,8 @@ def TABLE(rows):
     return h+'</tbody></table>'
 def PRE(code):
     return f'<pre style=\'{MONO};font-size:15px;background:#f0ebe0;border:1px solid #e4ddd4;padding:12px 14px;color:#1c1917;line-height:1.55;overflow-x:auto;margin:0 0 20px\'>{html.escape(code)}</pre>'
-def IMG(file,alt,read,title):
-    return (f'<img class="shot" src="https://simplesecurityca.wordpress.com/wp-content/uploads/2026/11/{file}" alt="{html.escape(alt)}" style="width:100%;display:block;border:1px solid #d6cfc4;margin:14px 0 6px" width="100%">'
+def IMG(file,alt,read,title,head=None):
+    return ((f'<p class="shot-head" style=\'{SERIF};font-size:21px;font-weight:700;color:#1c1917;line-height:1.35;margin:26px 0 8px\'>{html.escape(head)}</p>' if head else '')+f'<img class="shot" src="https://simplesecurityca.wordpress.com/wp-content/uploads/2026/11/{file}" alt="{html.escape(alt)}" style="width:100%;display:block;border:1px solid #d6cfc4;margin:14px 0 6px" width="100%">'
      f'<p class="shot-cap" style=\'{MONO};font-size:13px;color:#78716c;letter-spacing:0.04em;margin-bottom:6px\'>{html.escape(title)}</p>'
      f'<p class="shot-cap" style="font-size:16.5px;color:#44403c;line-height:1.65;margin-bottom:22px">{inl(read)}</p>')
 def SEC(n,title,body,num=True):
@@ -66,10 +66,12 @@ IMGS={
 "Data normalization is key to hyperscaling agents":[
  IMG("siem-agent-v2-01-normalized.jpg","140 sources feed seven ASIM schemas, which 1,000 rules and 1,000 agents read",
  "Left to right: 140 raw sources grouped by the ASIM schema they map to, the seven schemas in the middle, then the two consumer fleets, 1,000 analytic rules (navy) and 1,000 agents (blue). Each source has one line into its schema, and every rule and agent reads only the schemas. The agents are grouped into four specialist types, one per schema family. Incidents from the rules start an orchestrator (one per incident), which hands work to the specialists, and everything they propose goes through the enforcer bar on the far right before it can change a system. That is the SOAR playbook split in three. Moving dots are events. Adding agents adds dots on the right and no lines on the left.",
- "Figure 1. With normalization: 140 sources, 7 schemas, 1,000 rules and 1,000 agents"),
+ "Figure 1. With normalization: 140 sources, 7 schemas, 1,000 rules and 1,000 agents",
+ "What works: SIEM correlation rules and agents both reading normalized data"),
  IMG("siem-agent-v2-02-not-normalized.jpg","Without the schema layer every consumer connects to every source in its schema",
  "The same 140 sources and 2,000 consumers with the schema layer removed. Every consumer now needs a line to each source in its schema; the drawing shows a sample of the 40,000. Red dots are the rules and agents that read a FortiGate field directly; the field was just renamed, so they are now broken.",
- "Figure 2. Without normalization: every rule and agent wired to every source")]}
+ "Figure 2. Without normalization: every rule and agent wired to every source",
+ "What doesn't work: SIEM rules and agents reading every source without normalization")]}
 ARCH_TITLE="Practical architecture"
 ARCH=[P("In Microsoft terms the design has five layers, and the order matters. Sources are onboarded and normalized first; the rule fleet reads the normalized store directly; agents reach it only through a tool layer; an agent runtime hosts the agent types and their concurrent runs; and an enforcer stands between proposed actions and anything that changes a system. Identity and observability apply to every layer."),
  UL(["Normalized data: Microsoft Sentinel's analytics tier and data lake with ASIM parsers. This is where the 1,000 rules run.",
