@@ -1,4 +1,4 @@
-# SIEM architecture skills that carry over to multi-agent systems
+# Why your SIEM engineer might be your next AI hyperscale engineer
 
 A multi-agent system that processes security events has the same outer shape as a SIEM pipeline. Events are collected, queued, normalized, evaluated and acted on. What changes is the processing node: a deterministic rule is replaced, or supplemented, by a model call that returns structured output and can call tools. The part of SIEM work that matters most at agent scale is normalization. A normalized schema is what lets a thousand correlation rules read hundreds of sources, and it is what lets any number of agents use the same data without each agent handling each source format. This post covers that first, then maps the rest of a SIEM pipeline to its agent equivalent, describes a three-role design (orchestrator, specialists, enforcer) for alert triage, and covers the runtime work AWS published on October 23, 2026 that makes large numbers of waiting agents cheap to host. An interactive visual shows 1,000 rules and 1,000 agents on the same normalized layer, with and without it.
 
