@@ -83,8 +83,8 @@ footer{background:var(--navy);color:var(--pale);font-size:11.5px;padding:14px 28
 <div class="card howto">
   <h3>How to read this</h3>
   <p>The diagram reads left to right. Dots on the left are raw data sources, grouped into bands by the common schema they map to (ASIM for security, HL7 FHIR for healthcare); a few real source names label each band. The middle column is the normalization layer: one schema per band. On the right are the consumers: the upper grid is the rule fleet (navy dots) and the lower grid is the agent fleet (blue dots). The domain buttons switch the same diagram between a security operations example and a healthcare example. Moving dots are events.</p>
-  <p>With <b>Normalized</b> selected, each source feeds one parser into its schema, and every consumer reads only the schema. With <b>Not normalized</b> selected, every consumer reads raw sources directly, so each one needs a line to every source in its band; the drawing shows a sample of those lines, and the table below gives the full counts. Amber dots are consumers interpreting a raw format. Red dots are consumers broken by a schema change at a source. The table always shows both designs, with the selected one highlighted.</p>
-  <p><b>Architecture</b> draws the same example as Microsoft services, left to right. Raw sources feed the normalized data store (the lime-outlined cylinder, the layer the fleet diagram is about). The rule fleet reads it directly; agents reach it only through the tool layer. Animated blue lines are data flow, the dashed navy line is incidents raised by rules that start agent work, and the grey dashed line is agent activity written back as a log source. Proposed actions pass through the enforcer before anything runs. The two bands at the bottom, identity and observability, apply to every layer. Click any part of the diagram to open its detail, including the SIEM skill that applies, in the list below it.</p>
+  <p>With <b>Normalized</b> selected, each source feeds one parser into its schema, and every consumer reads only the schema. With <b>Not normalized</b> selected, every consumer reads raw sources directly, so each one needs a line to every source in its band; the drawing shows a sample of those lines, and the table below gives the full counts. The rules and agents sliders set the size of each fleet; with "Same count for rules and agents" ticked they move together, so the two designs compare like for like. The agent fleet is split into specialist groups, each reading the schemas its job needs; incidents from the rule fleet start an orchestrator, and every action an agent proposes goes to the enforcer on the right. Together these three roles replace a SOAR playbook. Amber dots are consumers interpreting a raw format. Red dots are consumers broken by a schema change at a source. The table always shows both designs, with the selected one highlighted.</p>
+  <p><b>Architecture</b> draws the same example as Microsoft services, left to right. Raw sources feed the normalized data store (the lime-outlined cylinder, the layer the fleet diagram is about). The rule fleet reads it directly; agents reach it only through the tool layer. The agent runtime shows the orchestrator and the specialist types it starts; the bracket marks the orchestrator, specialists and enforcer as the replacement for a SOAR playbook. Animated blue lines are data flow, the dashed navy line is incidents raised by rules that start agent work, and the grey dashed line is agent activity written back as a log source. Proposed actions pass through the enforcer before anything runs. The two bands at the bottom, identity and observability, apply to every layer. Click any part of the diagram to open its detail, including the SIEM skill that applies, in the list below it.</p>
 </div>
 
 <div class="ctrl">
@@ -92,7 +92,9 @@ footer{background:var(--navy);color:var(--pale);font-size:11.5px;padding:14px 28
   <div class="seg" id="view"><button data-v="fleet" class="on">Fleet diagram</button><button data-v="arch">Architecture</button></div>
   <div class="seg fo" id="mode"><button data-m="on" class="on">Normalized</button><button data-m="off">Not normalized</button></div>
   <label class="sl fo">Raw data sources: <b id="nV"></b><input type="range" id="n" min="14" max="490" step="7" value="140"></label>
+  <label class="sl fo">Rules: <b id="rV"></b><input type="range" id="r" min="1" max="4" step="0.01" value="3"></label>
   <label class="sl fo">Agents: <b id="aV"></b><input type="range" id="a" min="1" max="4" step="0.01" value="3"></label>
+  <label class="fo" style="font-size:13px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="link" checked> Same count for rules and agents</label>
   <button id="add" class="sec fo">Add 1,000 agents</button>
   <button id="drift" class="fo">A source changes a field</button>
   <button id="clear" class="sec fo">Clear</button>
@@ -156,6 +158,9 @@ DOM.hc.arch={layers:[
  ["Actions and oversight",false,"Clinician review and submission","A clinician or reviewer approves any order, payer submission or record write-back. Approved changes are written through the FHIR API.","Approval gates and change control"]],
  rail:[["Identity","Managed identities and SMART scopes per agent group, limited to the FHIR resource types each agent needs."],
   ["Observability","Agent traces to Application Insights with OpenTelemetry. FHIR service audit logs record every read and write by an agent."]]};
+DOM.sec.spec=[["Identity specialists",[0]],["Endpoint specialists",[1,6]],["Network specialists",[2,3,4]],["Cloud and audit specialists",[5]]];
+DOM.hc.spec=[["Care-gap specialists",[0,2]],["Clinical review specialists",[1,6]],["Medication specialists",[3]],["Prior auth and coding specialists",[4,5]]];
+DOM.sec.svgSpec=["Identity","Endpoint","Network","Cloud, audit"];DOM.hc.svgSpec=["Care gaps","Clinical review","Medication","Prior auth, coding"];
 DOM.sec.svg={src:["Entra ID","Defender XDR","Firewalls (CEF, syslog)","AWS CloudTrail","Okta","Custom apps (_CL tables)"],
  norm:["Microsoft Sentinel","analytics tier and data lake"],chips:["Authentication","Process Event","Network Session","DNS","Web Session","Audit Event","File Event"],normTag:"ASIM parsers",
  rules:["1,000 analytic rules","query the ASIM functions"],tools:["Sentinel MCP server","data exploration tools","custom KQL tools"],
@@ -185,7 +190,7 @@ function svgArch(v){
  h+=`<path class="flow" d="M800,245 L858,245" marker-end="url(#ar)"/><path class="flow" d="M858,268 L802,268" marker-end="url(#ar)"/>`;
  h+=`<path class="flow inc" d="M800,90 C900,90 975,100 975,148" marker-end="url(#arN)"/>`+t(870,82,"incidents",{fs:11,c:"#05052F"});
  h+=`<path class="flow" d="M1090,220 L1128,220" marker-end="url(#ar)"/><path class="flow" d="M1205,262 L1205,298" marker-end="url(#ar)"/>`;
- h+=`<path class="flow fb" d="M300,492 L300,345" marker-end="url(#arG)"/>`+t(308,400,v.fb,{fs:11,c:"#555"});
+ h+=`<path class="flow fb" d="M300,486 L300,345" marker-end="url(#arG)"/>`+t(308,400,v.fb,{fs:11,c:"#555"});
  h+=t(560,252,"",{});
  // sources
  h+=`<g class="hit" data-l="0">`+lab(20,28,"SOURCES");
@@ -212,10 +217,9 @@ function svgArch(v){
  h+=`<g class="hit" data-l="3">`+lab(860,142,"AGENT RUNTIME")+`<rect class="frame" x="860" y="150" width="230" height="240" rx="8" fill="#F0F7FF" stroke="#33A7FF"/>`+
   t(975,172,v.run[0],{a:"middle",b:1,fs:12.5})+t(975,188,v.run[1],{a:"middle",fs:11.5,c:"#555"})+
   `<circle cx="975" cy="214" r="14" fill="#05052F"/>`+t(975,218,"orch",{a:"middle",fs:9.5,c:"#fff"});
- const ag=[];for(let r=0;r<6;r++)for(let c=0;c<14;c++)ag.push([878+c*14.5,250+r*15]);
- [3,10,24,31,45,52,66,73].forEach(i=>{h+=`<line x1="975" y1="228" x2="${ag[i][0]}" y2="${ag[i][1]}" stroke="#33A7FF" stroke-width="1"/>`});
- ag.forEach(([x,y])=>h+=`<circle cx="${x}" cy="${y}" r="4.2" fill="#001AFF"/>`);
- h+=t(975,354,"many concurrent runs, suspended while waiting",{a:"middle",fs:10.5,c:"#555"})+`<rect x="872" y="362" width="206" height="20" rx="4" fill="#fff" stroke="#DCDCDD"/>`+t(975,376,v.runTag,{a:"middle",fs:9.6})+`</g>`;
+ D.svgSpec.forEach((sp,i)=>{const y=248+i*26;h+=`<line x1="975" y1="228" x2="${968}" y2="${y}" stroke="#33A7FF" stroke-width="1"/>`+t(868,y+4,sp,{fs:10.5});for(let c=0;c<7;c++)h+=`<circle cx="${978+c*14.5}" cy="${y}" r="4.4" fill="#001AFF"/>`});
+ h+=t(868,236,"specialists",{fs:10,c:"#555"})+t(992,218,"orchestrator",{fs:10,c:"#555"});
+ h+=t(975,354,"many concurrent runs of each specialist type",{a:"middle",fs:10.5,c:"#555"})+`<rect x="872" y="362" width="206" height="20" rx="4" fill="#fff" stroke="#DCDCDD"/>`+t(975,376,v.runTag,{a:"middle",fs:9.6})+`</g>`;
  // enforcer + actions
  h+=`<g class="hit" data-l="4">`+lab(1130,172,"ACTIONS AND OVERSIGHT")+`<rect class="frame" x="1130" y="180" width="155" height="82" rx="8" fill="#fff" stroke="#DCDCDD"/><rect x="1130" y="180" width="6" height="82" fill="#CAFF00"/>`+
   t(1144,202,v.enf[0],{b:1})+t(1144,220,v.enf[1],{fs:11})+t(1144,236,v.enf[2],{fs:11})+
@@ -223,8 +227,9 @@ function svgArch(v){
   `<rect class="frame" x="1130" y="300" width="155" height="60" rx="8" fill="#fff" stroke="#DCDCDD"/>`+t(1144,324,v.act[0],{b:1})+t(1144,342,v.act[1],{fs:11})+
   t(1212,282,"approved",{fs:10.5,c:"#555"})+t(1092,238,"proposed",{fs:10,c:"#555"})+`</g>`;
  // bands
- h+=`<g class="hit" data-l="5"><rect class="frame" x="580" y="420" width="705" height="44" rx="6" fill="#F7F8FC" stroke="#05052F"/><rect x="580" y="420" width="6" height="44" fill="#05052F"/>`+t(596,447,v.id,{fs:12})+`</g>`;
- h+=`<g class="hit" data-l="6"><rect class="frame" x="270" y="492" width="1015" height="44" rx="6" fill="#F7F8FC" stroke="#05052F"/><rect x="270" y="492" width="6" height="44" fill="#05052F"/>`+t(286,519,v.obs,{fs:12})+`</g>`;
+ h+=`<path d="M862,394 v6 h423 v-6" fill="none" stroke="#05052F" stroke-width="1.2"/>`+t(1073,414,"orchestrator + specialists + enforcer = a SOAR playbook, split in three",{a:"middle",fs:11});
+ h+=`<g class="hit" data-l="5"><rect class="frame" x="580" y="428" width="705" height="44" rx="6" fill="#F7F8FC" stroke="#05052F"/><rect x="580" y="428" width="6" height="44" fill="#05052F"/>`+t(596,455,v.id,{fs:12})+`</g>`;
+ h+=`<g class="hit" data-l="6"><rect class="frame" x="270" y="486" width="1015" height="44" rx="6" fill="#F7F8FC" stroke="#05052F"/><rect x="270" y="486" width="6" height="44" fill="#05052F"/>`+t(286,513,v.obs,{fs:12})+`</g>`;
  return h+`</svg>`;}
 function renderArch(){const a=D.arch;
  const det=a.layers.map((L,i)=>`<details class="det${L[1]?" key":""}" id="det${i}"><summary><span>${L[0]}</span>${L[2]}</summary><div class="in"><p>${L[3]}</p><span class="sk">SIEM skill: ${L[4]}</span>${L[5]?`<div class="side">${L[5]}</div>`:""}</div></details>`).join("")+
@@ -239,11 +244,11 @@ let dom="sec",D=DOM.sec,SCH=D.sch;
 const W=1280,Hh=700,cv=document.getElementById("cv"),ctx=cv.getContext("2d");
 const dpr=Math.min(2,window.devicePixelRatio||1);cv.width=W*dpr;cv.height=Hh*dpr;ctx.scale(dpr,dpr);
 const C={navy:"#05052F",blue:"#001AFF",sky:"#33A7FF",pale:"#CBE9FF",lime:"#CAFF00",g2:"#DCDCDD",red:"#C0182B",amber:"#E09A00"};
-const R=1000;            // correlation rules
+let R=1000;              // rules
 let mode="on",N=140,A=1000,drift=null,driftT=0;
 const bandTop=46,bandH=(Hh-70)/7;
 const SX=250,SCX=640,RX=860,GX=W-20;
-let srcDots=[],ruleDots=[],agDots=[],bg=null,parts=[];
+let srcDots=[],ruleDots=[],agDots=[],bg=null,parts=[],specLab=[],agBottom=0;
 const rnd=(()=>{let s=7;return()=>(s=(s*16807)%2147483647)/2147483647})();
 
 function weightSchema(r){const w=[.24,.2,.18,.1,.1,.1,.08];let a=0;for(let i=0;i<7;i++){a+=w[i];if(r<a)return i}return 6}
@@ -254,8 +259,12 @@ function layout(){
       srcDots.push({b,x:SX-cols*9+cx*9+4,y:bandTop+b*bandH+bandH/2-(rows*9)/2+cy*9+4})}}
   const grid=(n,top,h)=>{const cols=40,rows=25,cw=(GX-RX)/cols,ch=h/rows,out=[];
     for(let i=0;i<n;i++){const cx=i%cols,cy=Math.floor(i/cols);out.push({x:RX+cx*cw+cw/2,y:top+cy*ch+ch/2,b:weightSchema(((i*7919)%1000)/1000),st:0,t:0})}return out};
-  ruleDots=grid(R,70,270);
-  agDots=grid(Math.min(1000,A),Hh-290,270);
+  ruleDots=grid(Math.min(1000,R),70,270);
+  {const n=Math.min(1000,A),tmp=[];for(let i=0;i<n;i++)tmp.push(weightSchema(((i*7919+13)%1000)/1000));
+   const cols=40,top=Hh-286,AGX=W-112,cw=(AGX-RX)/cols,grp=D.spec.map(g=>tmp.filter(b=>g[1].includes(b)));
+   const rows=grp.reduce((a,g)=>a+Math.ceil(g.length/cols),0),ch=Math.min(7.4,(266-grp.length*14)/rows);let y=top;agDots=[];specLab=[];
+   grp.forEach((g,gi)=>{specLab.push([D.spec[gi][0],y+9]);y+=13;g.forEach((b,k)=>{const cx=k%cols,cy=Math.floor(k/cols);agDots.push({x:RX+cx*cw+cw/2,y:y+cy*ch+ch/2,b,st:0,t:0,s:5})});y+=Math.ceil(g.length/cols)*ch+1});
+   agBottom=y;}
   drawBg();
 }
 function drawBg(){
@@ -270,8 +279,9 @@ function drawBg(){
   g.fillStyle="#555";g.font="12px Arial";
   g.fillText("RAW SOURCES ("+N+")",8,30);
   g.fillText(mode==="on"?"NORMALIZATION LAYER ("+D.layer+")":"NO NORMALIZATION LAYER",SCX-80,30);
-  g.fillText(D.rules+" (1,000)",RX,60);
+  g.fillText(D.rules+" ("+R.toLocaleString()+(R>1000?", each dot = "+(R/1000).toFixed(1)+" rules":"")+")",RX,60);
   g.fillText("AGENTS ("+A.toLocaleString()+(A>1000?", each dot = "+(A/1000).toFixed(1)+" agents":"")+")",RX,Hh-298);
+  g.font="bold 11px Arial";specLab.forEach(([l,y])=>{const w=g.measureText(l).width;g.fillStyle="#fff";g.fillRect(RX-2,y-10,w+6,13);g.fillStyle=C.navy;g.fillText(l,RX,y)});
   // lines
   g.lineWidth=1;
   if(mode==="on"){
@@ -288,6 +298,16 @@ function drawBg(){
     if(mode==="on"){g.fillStyle=C.navy;round(g,SCX-70,y-17,140,34,6);g.fill();g.fillStyle=C.lime;g.fillRect(SCX-70,y-17,5,34);
       g.fillStyle="#fff";g.font="12.5px Arial";g.textAlign="center";g.fillText(SCH[b][0],SCX+3,y+4);g.textAlign="left";}
     else{g.strokeStyle=C.g2;g.setLineDash([4,4]);round(g,SCX-70,y-17,140,34,6);g.stroke();g.setLineDash([]);}}
+  // orchestrator + enforcer (agent fleet roles)
+  const ox=RX+150,oy=Hh-318;g.setLineDash([3,4]);g.strokeStyle=C.navy;g.lineWidth=1.2;line(g,ox+70,343,ox+70,oy);g.setLineDash([]);
+  g.fillStyle=C.navy;g.beginPath();g.moveTo(ox+65,oy-6);g.lineTo(ox+75,oy-6);g.lineTo(ox+70,oy);g.fill();
+  g.font="11px Arial";g.fillStyle="#555";g.fillText("incidents",ox+78,oy-10);
+  round(g,ox,oy,140,18,9);g.fillStyle=C.navy;g.fill();g.fillStyle="#fff";g.font="11px Arial";g.textAlign="center";g.fillText("orchestrator, 1 per incident",ox+70,oy+13);g.textAlign="left";
+  const ex=W-100,ey=Hh-286,eh=Math.max(120,agBottom-ey);
+  round(g,ex,ey,82,eh,6);g.fillStyle=C.navy;g.fill();g.fillStyle=C.lime;g.fillRect(ex,ey,5,eh);
+  g.save();g.translate(ex+36,ey+eh/2);g.rotate(-Math.PI/2);g.textAlign="center";g.fillStyle="#fff";g.font="bold 14px Arial";g.fillText("ENFORCER",0,0);
+  g.font="11px Arial";g.fillStyle=C.pale;g.fillText("every proposed action",0,16);g.fillText("is approved or blocked here",0,30);g.restore();
+  g.strokeStyle="rgba(5,5,47,.35)";g.lineWidth=1;specLab.forEach(([l,y])=>{line(g,W-114,y+8,ex-2,y+8);g.fillStyle=C.navy;g.beginPath();g.moveTo(ex-2,y+8);g.lineTo(ex-8,y+5);g.lineTo(ex-8,y+11);g.fill()});
   bg=o;
 }
 function wrap(g,t,x,y,w,lh){const ws=t.split(" ");let l="";for(const s of ws){const tt=l?l+" "+s:s;if(g.measureText(tt).width>w){g.fillText(l,x,y);y+=lh;l=s}else l=tt}if(l)g.fillText(l,x,y)}
@@ -320,7 +340,7 @@ function draw(){
   ctx.clearRect(0,0,W,Hh);if(bg)ctx.drawImage(bg,0,0,W,Hh);
   srcDots.forEach(s=>{ctx.fillStyle=drift&&s===drift.src?C.red:C.sky;ctx.fillRect(s.x-3,s.y-3,6,6)});
   if(drift&&mode==="on"&&!drift.fixed){ctx.strokeStyle=C.red;ctx.lineWidth=2;line(ctx,drift.src.x,drift.src.y,SCX-70,schY(drift.b));ctx.lineWidth=1;}
-  const dot=(arr,base)=>arr.forEach(d=>{ctx.fillStyle=d.st===2?C.red:d.st===1?C.amber:base;ctx.fillRect(d.x-3,d.y-3,6,6)});
+  const dot=(arr,base)=>arr.forEach(d=>{const z=d.s||6;ctx.fillStyle=d.st===2?C.red:d.st===1?C.amber:base;ctx.fillRect(d.x-z/2,d.y-z/2,z,z)});
   dot(ruleDots,C.navy);dot(agDots,C.blue);
   parts.forEach(p=>{const a=p.path[p.seg],b=p.path[p.seg+1];const x=a[0]+(b[0]-a[0])*p.u,y=a[1]+(b[1]-a[1])*p.u;
     ctx.fillStyle=p.bad&&!(drift&&drift.fixed)?C.red:C.lime;ctx.beginPath();ctx.arc(x,y,2.6,0,6.3);ctx.fill();ctx.strokeStyle="rgba(5,5,47,.5)";ctx.stroke()});
@@ -343,10 +363,16 @@ function nums(){
    rows.map((r,i)=>`<div class="${i===rows.length-1?"last":""}">${r[0]}</div><div class="v${cOn}${i===rows.length-1?" last":""}">${r[1]}</div><div class="v${cOff}${i===rows.length-1?" last":""}">${r[2]}</div>`).join("");
 }
 function setA(v){A=Math.round(Math.pow(10,v));if(A>=1000)A=Math.round(A/100)*100;document.getElementById("aV").textContent=A.toLocaleString()}
-function refresh(){N=+document.getElementById("n").value;document.getElementById("nV").textContent=N;setA(+document.getElementById("a").value);drift=null;parts=[];layout();nums()}
+const cnt=v=>{let x=Math.round(Math.pow(10,v));if(x>=1000)x=Math.round(x/100)*100;return x};
+function setR(v){R=cnt(v);document.getElementById("rV").textContent=R.toLocaleString()}
+function refresh(){N=+document.getElementById("n").value;document.getElementById("nV").textContent=N;setA(+document.getElementById("a").value);setR(+document.getElementById("r").value);drift=null;parts=[];layout();nums()}
 document.querySelectorAll("#mode button").forEach(b=>b.onclick=()=>{mode=b.dataset.m;document.querySelectorAll("#mode button").forEach(x=>x.classList.toggle("on",x===b));refresh()});
-document.getElementById("n").oninput=refresh;document.getElementById("a").oninput=refresh;
-document.getElementById("add").onclick=()=>{const el=document.getElementById("a");const cur=A+1000;el.value=Math.min(4,Math.log10(cur));refresh();
+document.getElementById("n").oninput=refresh;
+const lk=()=>document.getElementById("link").checked;
+document.getElementById("a").oninput=()=>{if(lk())document.getElementById("r").value=document.getElementById("a").value;refresh()};
+document.getElementById("r").oninput=()=>{if(lk())document.getElementById("a").value=document.getElementById("r").value;refresh()};
+document.getElementById("link").onchange=()=>{if(lk()){document.getElementById("r").value=document.getElementById("a").value;refresh()}};
+document.getElementById("add").onclick=()=>{const el=document.getElementById("a");const cur=A+1000;el.value=Math.min(4,Math.log10(cur));if(lk())document.getElementById("r").value=el.value;refresh();
   banner(mode==="on"?`${A.toLocaleString()} agents. The new 1,000 needed no new parsers or integrations.`:`${A.toLocaleString()} agents. The new 1,000 need about ${(1000*Math.round(N/7)).toLocaleString()} more source-specific integrations.`)};
 document.getElementById("drift").onclick=()=>{
   const b=D.driftSch,src=srcDots.find(s=>s.b===b);
