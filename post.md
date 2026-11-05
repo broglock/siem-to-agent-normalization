@@ -120,9 +120,8 @@ The consumers are clinical decision support rules, such as sepsis screening or d
 
 The accompanying page draws 140 raw sources grouped by ASIM schema, the seven schemas in the middle, and two consumer fleets on the right: 1,000 correlation rules and 1,000 agents. With normalization selected, each source has one line to its schema and every consumer reads only the schema. With normalization removed, every consumer needs a line to every source in its schema, and the drawing becomes a dense mesh. Sliders change the number of sources and agents, and a counts table gives both designs side by side: integrations to maintain, work to add one agent, work to add one source, and consumers broken when a FortiGate source renames a field. Adding 1,000 agents to the normalized design adds no integrations; adding them without normalization adds about 20,000. A second button switches the same diagram to the healthcare example, with FHIR resources as the middle layer and decision support rules and clinical agents as the consumers. An Architecture view draws each example as Microsoft services: Sentinel with ASIM, the Sentinel MCP server and Foundry Agent Service for security; the Azure Health Data Services FHIR service, a FHIR MCP server and Foundry Agent Service for healthcare.
 
-The visual is at https://broglock.github.io/siem-to-agent-normalization/ and the source, including this post and `triage_mesh.py`, is at https://github.com/broglock/siem-to-agent-normalization.
+The visual is at https://broglock.github.io/siem-to-agent-normalization/ and the source, including this post, is at https://github.com/broglock/siem-to-agent-normalization.
 
-A runnable Python sketch of the triage design described earlier, `triage_mesh.py`, uses only the standard library and a stub model. It shows the schema contracts, two specialists running in parallel on an asyncio queue, and an enforcer that blocks the break-glass account action. Replacing the stub with a real model call and the tool functions with KQL queries turns it into a working starting point.
 
 ## References
 

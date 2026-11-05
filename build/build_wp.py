@@ -99,7 +99,7 @@ refs=[("Service limits for Microsoft Sentinel","https://learn.microsoft.com/en-u
 ("HL7 FHIR R4","https://hl7.org/fhir/R4/","HL7"),
 ("ONC Cures Act Final Rule","https://www.healthit.gov/topic/oncs-cures-act-final-rule","HealthIT.gov"),
 ("Interactive visual","https://broglock.github.io/siem-to-agent-normalization/","GitHub Pages"),
-("Project repository: post, visual and triage_mesh.py","https://github.com/broglock/siem-to-agent-normalization","GitHub")]
+("Project repository: post and visual","https://github.com/broglock/siem-to-agent-normalization","GitHub")]
 n+=1
 reflist='<ul class="ref-list" style="margin:0;padding-left:22px">'+"".join(f'<li style="padding:6px 0;border-bottom:1px solid #e4ddd4;font-size:16.5px;color:#44403c"><a href="{u}" {A}>{html.escape(t)}</a><span class="ref-src" style=\'{MONO};font-size:12.5px;color:#78716c;margin-left:8px\'>{s}</span></li>' for t,u,s in refs)+'</ul>'
 out.append(SEC(n,"References",reflist,num=False))
