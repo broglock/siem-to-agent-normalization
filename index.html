@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Normalization at fleet scale: 1,000 rules and 1,000 agents on one schema</title>
+<style>
+:root{--navy:#05052F;--blue:#001AFF;--sky:#33A7FF;--pale:#CBE9FF;--lime:#CAFF00;--g1:#A5A5A5;--g2:#DCDCDD;--red:#C0182B;--amber:#B87400;--bg:#F6F8FC}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--navy);background:var(--bg);font-size:15px;line-height:1.45}
+header{background:var(--navy);color:#fff;padding:22px 28px 18px;border-bottom:6px solid var(--lime)}
+.brand{display:flex;align-items:center;gap:10px;font-size:15px}
+.brand svg{height:20px}
+header h1{font-size:28px;font-weight:normal;margin:12px 0 4px}
+header p{margin:0;color:var(--pale);max-width:980px}
+main{max-width:1320px;margin:0 auto;padding:20px 24px 40px}
+h2{color:var(--blue);font-weight:normal;font-size:22px;margin:24px 0 8px}
+h3{font-size:16px;margin:0 0 6px;font-weight:normal}
+.card{background:#fff;border:1px solid var(--g2);border-radius:8px;padding:16px}
+.howto{border-left:5px solid var(--sky)}
+.howto p{margin:4px 0}
+.ctrl{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:center;margin:16px 0 10px}
+.seg{display:inline-flex;border:1px solid var(--blue);border-radius:6px;overflow:hidden}
+.seg button{border:0;border-radius:0;background:#fff;color:var(--blue)}
+.seg button.on{background:var(--blue);color:#fff}
+button{font:inherit;cursor:pointer;border-radius:6px;border:1px solid var(--navy);background:var(--navy);color:#fff;padding:8px 14px}
+button.sec{background:#fff;color:var(--blue);border-color:var(--blue)}
+label.sl{font-size:13px;display:flex;flex-direction:column;min-width:220px}
+label.sl b{font-size:15px}
+.stage{background:#fff;border:1px solid var(--g2);border-radius:8px;padding:8px;position:relative}
+canvas{width:100%;height:auto;display:block}
+.banner{position:absolute;left:50%;top:10px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:6px 14px;border-radius:6px;font-size:13.5px;border-left:5px solid var(--lime);display:none;max-width:80%}
+.nums{display:grid;grid-template-columns:240px 1fr 1fr;gap:0;margin-top:14px;background:#fff;border:1px solid var(--g2);border-radius:8px;overflow:hidden}
+.nums div{padding:10px 14px;border-bottom:1px solid var(--g2);font-size:14px}
+.nums .h{background:var(--navy);color:#fff}
+.nums .h.cur{background:var(--blue)}
+.nums .v{font-size:20px}
+.nums .v small{display:block;font-size:12px;color:#555}
+.nums .cur{background:#F0F7FF}
+.nums .last{border-bottom:0}
+table{border-collapse:collapse;width:100%;background:#fff;font-size:14px}
+th{background:var(--navy);color:#fff;text-align:left;padding:8px;font-weight:normal}
+td{border-bottom:1px solid var(--g2);padding:8px;vertical-align:top}
+.note{font-size:12.5px;color:#555;margin-top:8px}
+.arch{display:grid;grid-template-columns:150px 1fr 230px;gap:10px 14px}
+.arch .rail{grid-column:3;grid-row:1/span 9;display:flex;flex-direction:column;gap:10px}
+.lay{display:contents}
+.lay .ln{font-size:12px;color:#555;text-transform:uppercase;letter-spacing:.5px;padding-top:12px}
+.box{border:1px solid var(--g2);border-left:6px solid var(--sky);border-radius:6px;padding:10px 12px;background:#fff}
+.box.key{border-left-color:var(--lime);background:#FBFFE8;box-shadow:0 0 0 2px var(--lime) inset}
+.box b{display:block;font-size:15px;font-weight:normal;color:var(--blue);margin-bottom:2px}
+.box p{margin:2px 0;font-size:13.5px}
+.box .sk{margin-top:6px;font-size:12px;background:var(--pale);display:inline-block;padding:2px 8px;border-radius:4px}
+.box .side{margin-top:6px;font-size:12.5px;color:#333;border-top:1px dashed var(--g2);padding-top:5px}
+.down{grid-column:2;text-align:center;color:var(--g1);font-size:14px;line-height:10px}
+.railbox{border:1px solid var(--g2);border-left:6px solid var(--navy);border-radius:6px;padding:10px 12px;background:#F7F8FC;font-size:13px}
+.railbox b{display:block;font-weight:normal;font-size:14px;margin-bottom:3px}
+#archSvg{width:100%;height:auto;display:block}
+#archSvg .hit{cursor:pointer}
+#archSvg .hit:hover>.frame{stroke:var(--sky);stroke-width:3}
+#archSvg .flow{fill:none;stroke:var(--sky);stroke-width:2;stroke-dasharray:5 6;animation:fl 1.2s linear infinite}
+#archSvg .flow.inc{stroke:var(--navy);stroke-dasharray:3 5}
+#archSvg .flow.fb{stroke:#8A8AA3;animation-duration:2.4s}
+@keyframes fl{to{stroke-dashoffset:-22}}
+details.det{border:1px solid var(--g2);border-left:6px solid var(--sky);border-radius:6px;margin:8px 0;background:#fff}
+details.det.key{border-left-color:var(--lime)}
+details.det summary{cursor:pointer;padding:9px 12px;font-size:14.5px}
+details.det summary span{color:#555;font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin-right:8px}
+details.det .in{padding:0 14px 12px}
+details.det .in p{margin:4px 0;font-size:14px}
+details.det .sk{font-size:12px;background:var(--pale);display:inline-block;padding:2px 8px;border-radius:4px;margin-top:4px}
+details.det .side{margin-top:6px;font-size:13px;border-top:1px dashed var(--g2);padding-top:5px}
+footer{background:var(--navy);color:var(--pale);font-size:11.5px;padding:14px 28px;margin-top:30px}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><svg viewBox="0 0 54 24" aria-hidden="true"><path d="M8 22 16 2h5L13 22z" fill="#00AAFF"/><path d="M22 22 30 2h5l-8 20z" fill="#001AFF"/><path d="M36 22 44 2h5l-8 20z" fill="#D5FE51"/></svg>LevelBlue</div>
+  <h1>Normalization at fleet scale: 1,000 rules and 1,000 agents on one schema</h1>
+  <p id="sub"></p>
+</header>
+<main>
+<div class="card howto">
+  <h3>How to read this</h3>
+  <p>The diagram reads left to right. Dots on the left are raw data sources, grouped into bands by the common schema they map to (ASIM for security, HL7 FHIR for healthcare); a few real source names label each band. The middle column is the normalization layer: one schema per band. On the right are the consumers: the upper grid is the rule fleet (navy dots) and the lower grid is the agent fleet (blue dots). The domain buttons switch the same diagram between a security operations example and a healthcare example. Moving dots are events.</p>
+  <p>With <b>Normalized</b> selected, each source feeds one parser into its schema, and every consumer reads only the schema. With <b>Not normalized</b> selected, every consumer reads raw sources directly, so each one needs a line to every source in its band; the drawing shows a sample of those lines, and the table below gives the full counts. Amber dots are consumers interpreting a raw format. Red dots are consumers broken by a schema change at a source. The table always shows both designs, with the selected one highlighted.</p>
+  <p><b>Architecture</b> draws the same example as Microsoft services, left to right. Raw sources feed the normalized data store (the lime-outlined cylinder, the layer the fleet diagram is about). The rule fleet reads it directly; agents reach it only through the tool layer. Animated blue lines are data flow, the dashed navy line is incidents raised by rules that start agent work, and the grey dashed line is agent activity written back as a log source. Proposed actions pass through the enforcer before anything runs. The two bands at the bottom, identity and observability, apply to every layer. Click any part of the diagram to open its detail, including the SIEM skill that applies, in the list below it.</p>
+</div>
+
+<div class="ctrl">
+  <div class="seg" id="dom"><button data-d="sec" class="on">Security operations</button><button data-d="hc">Healthcare (FHIR)</button></div>
+  <div class="seg" id="view"><button data-v="fleet" class="on">Fleet diagram</button><button data-v="arch">Architecture</button></div>
+  <div class="seg fo" id="mode"><button data-m="on" class="on">Normalized</button><button data-m="off">Not normalized</button></div>
+  <label class="sl fo">Raw data sources: <b id="nV"></b><input type="range" id="n" min="14" max="490" step="7" value="140"></label>
+  <label class="sl fo">Agents: <b id="aV"></b><input type="range" id="a" min="1" max="4" step="0.01" value="3"></label>
+  <button id="add" class="sec fo">Add 1,000 agents</button>
+  <button id="drift" class="fo">A source changes a field</button>
+  <button id="clear" class="sec fo">Clear</button>
+</div>
+
+<div class="stage"><canvas id="cv" width="1280" height="700"></canvas><div class="banner" id="banner"></div></div>
+
+<div class="nums" id="nums"></div>
+<div class="card" id="archView" style="display:none"></div>
+
+<h2 id="tblH"></h2>
+<table>
+<thead><tr><th style="width:24%">Question</th><th style="width:38%" id="thR"></th><th id="thA"></th></tr></thead>
+<tbody id="tbl"></tbody>
+</table>
+<p class="note" id="note"></p>
+</main>
+<footer>© 2026 LevelBlue Intellectual Property. LevelBlue logo, and registered trademarks and service marks are the property of LevelBlue Intellectual Property and/or LevelBlue affiliated companies. All other marks are the property of their respective owners.</footer>
+
+<script>
+const DOM={
+sec:{sub:"A SIEM normalizes data so a thousand correlation rules can read every source through one schema. The same layer lets any number of agents read every source without each agent learning each format.",
+ layer:"ASIM",rules:"CORRELATION RULES",ruleWord:"rules",driftSch:2,driftSrc:"FortiGate",
+ driftOn:"FortiGate renames srcip to src_ip. The FortiGate parser into Network Session breaks; consumers read the schema, so nothing downstream changes while the parser is fixed.",
+ driftOff:n=>`FortiGate renames srcip to src_ip. About ${n} rules and agents read that field directly and break.`,
+ driftRow:"Consumers broken when a network source renames a field",addRow:"Work to add one more network source",consRow:"every network consumer updated",
+ sch:[["Authentication","Entra ID, Okta, AWS CloudTrail, Cisco ISE"],["Process Event","Defender for Endpoint, CrowdStrike, SentinelOne, Sysmon"],["Network Session","Palo Alto, FortiGate, Cisco ASA, Check Point"],["DNS","Windows DNS, Infoblox, Cisco Umbrella"],["Web Session","Zscaler, Netskope, Squid"],["Audit Event","Azure Activity, M365 audit, Google Workspace"],["File Event","Defender for Endpoint, Box, SharePoint"]],
+ tblH:"The SIEM skill and its agent equivalent",thR:"1,000 correlation rules",thA:"1,000 agents",
+ rows:[["What each consumer reads","An analytic rule queries a schema function such as <code>_Im_Authentication</code>, not 30 raw tables.","An agent's query tool calls the same function. The agent sees one shape of authentication data whatever the source."],
+ ["Cost of adding a source","One parser. Every existing rule on that schema covers the new source without edits.","The same parser. Every existing agent covers the new source without a prompt change or new tool."],
+ ["Cost of adding a consumer","Write the rule once against the schema.","Start the agent with the schema tools. No per-source integration, no extra tokens spent working out an unfamiliar format."],
+ ["A source changes a field","Fix one parser. All rules recover.","The same fix. All agents recover, and their verdicts stay consistent with each other."],
+ ["Without normalization","Each rule carries per-source logic; coverage differs rule by rule.","Each agent works out each raw format itself, on every call. Results differ agent by agent and cost tokens each time."]],
+ note:"ASIM schemas used in the diagram: Authentication, Process Event, Network Session, DNS, Web Session, Audit Event, File Event. In Microsoft Sentinel the ASIM parsers are KQL functions, so the same function serves an analytic rule, a hunting query, and an agent's tool. Counts in the table assume each consumer uses one schema and sources are spread evenly across the seven schemas."},
+hc:{sub:"A hospital network normalizes clinical data into HL7 FHIR resources so a thousand decision support rules can read every system through one model. The same layer lets any number of agents work across every system without each agent learning each feed.",
+ layer:"HL7 FHIR R4",rules:"CLINICAL DECISION SUPPORT RULES",ruleWord:"rules",driftSch:1,driftSrc:"a lab system",
+ driftOn:"A lab system starts sending glucose results in mmol/L instead of mg/dL. Its mapping into Observation is updated once to convert the unit; every rule and agent keeps reading the same Observation values.",
+ driftOff:n=>`A lab system starts sending glucose results in mmol/L instead of mg/dL. About ${n} rules and agents read the raw value directly and now see numbers about 18 times too low.`,
+ driftRow:"Consumers broken when a lab system changes its result units",addRow:"Work to add one more lab system",consRow:"every lab-result consumer updated",
+ sch:[["Patient","EHR registration (Epic, Oracle Health, MEDITECH), practice management"],["Observation","Lab systems (HL7 v2 results), bedside monitors, home devices"],["Encounter","Admit, discharge and transfer feeds, scheduling"],["MedicationRequest","E-prescribing, pharmacy systems"],["Condition","EHR problem lists, claims (ICD-10)"],["Procedure","Surgical systems, claims (CPT)"],["DiagnosticReport","Radiology (RIS/PACS), pathology"]],
+ tblH:"The same pattern in healthcare",thR:"1,000 decision support rules",thA:"1,000 agents",
+ rows:[["What each consumer reads","A sepsis or drug-interaction rule reads FHIR Observation and MedicationRequest resources, not each lab and pharmacy feed.","A prior authorization, care-gap or coding agent calls a FHIR API tool and gets the same resources whatever system produced them."],
+ ["Cost of adding a source","Map the new system to FHIR once. Every existing rule covers it.","The same mapping. Every existing agent covers the new system without a prompt change or new tool."],
+ ["Cost of adding a consumer","Write the rule once against FHIR resources and standard codes (LOINC, RxNorm, ICD-10).","Start the agent with FHIR tools. No per-system interface work, no tokens spent decoding HL7 v2 segments."],
+ ["A source changes a field or unit","Fix the mapping once. All rules recover.","The same fix. All agents recover and read the same values."],
+ ["Without normalization","Each rule carries per-system logic and unit handling; one missed change misfires an alert.","Each agent decodes each feed itself on every call. Results differ agent by agent, and a unit change is a patient safety issue."]],
+ note:"FHIR resources used in the diagram: Patient, Observation, Encounter, MedicationRequest, Condition, Procedure, DiagnosticReport. HL7 FHIR R4 is the version required for patient access APIs in certified US EHR technology under the ONC Cures Act Final Rule. Counts in the table assume each consumer uses one resource type and sources are spread evenly across the seven."}};
+DOM.sec.arch={layers:[
+ ["Sources",false,"Raw log sources","Entra ID, Defender XDR, firewalls over CEF and syslog, AWS CloudTrail, custom applications. Collected with data connectors and data collection rules.","Data source onboarding"],
+ ["Normalized data",true,"Microsoft Sentinel analytics tier and data lake, with ASIM","ASIM parsers such as <code>_Im_Authentication</code> and <code>_Im_NetworkSession</code> present every source in one schema per activity type.","Parser writing and schema coverage","Rule fleet reads here: analytic rules query the ASIM functions. A standard workspace allows 512 enabled scheduled rules; 1,024 on a dedicated cluster."],
+ ["Tool layer",false,"Sentinel MCP server","Data exploration tools for the lake, plus custom MCP tools built from saved KQL queries that call the ASIM functions. Agents call tools; they never read raw tables.","Least privilege and query design"],
+ ["Agent runtime",false,"Microsoft Foundry Agent Service, plus Security Copilot","10 to 20 agent types (triage, identity, endpoint, email, threat intelligence) running as many concurrent investigations in Foundry. A few agent types embedded in Defender and Entra through Security Copilot, billed in SCUs.","Capacity planning","Agent fleet runs here. Limits: model tokens per minute, Log Analytics query concurrency per identity, SCU capacity."],
+ ["Actions and oversight",false,"Enforcer and response","Logic Apps playbooks with approval steps, a protected-account watchlist and blast-radius limits. Approved actions run through Defender and Entra response actions.","Approval gates and change control"]],
+ rail:[["Identity","An Entra Agent ID per agent group. Each identity gets its own RBAC scope and its own query concurrency (5 concurrent Log Analytics queries per identity)."],
+  ["Observability","Agent traces to Application Insights with OpenTelemetry. Agent sign-ins, queries and actions logged back to Sentinel as a log source."]]};
+DOM.hc.arch={layers:[
+ ["Sources",false,"Clinical systems","EHR registration (Epic, Oracle Health, MEDITECH), lab systems sending HL7 v2 results, admit, discharge and transfer feeds, pharmacy, bedside and home devices, radiology, claims.","Interface onboarding"],
+ ["Normalized data",true,"Azure Health Data Services FHIR service (FHIR R4)","$convert-data turns HL7 v2 and C-CDA into FHIR resources. The MedTech service maps device data to Observation. The DICOM service holds imaging. Codes are standardized to LOINC, RxNorm and ICD-10.","Mapping and terminology coverage","Rule fleet reads here: clinical decision support rules read FHIR resources rather than each feed."],
+ ["Tool layer",false,"FHIR MCP server, plus reference MCP servers","A FHIR MCP server using SMART Backend Services authentication. Reference servers for ICD-10 codes, the NPI Registry and CMS coverage policies.","Least privilege and query design"],
+ ["Agent runtime",false,"Microsoft Foundry Agent Service","Agent types such as prior authorization (compliance, clinical review, coverage, synthesis), care-gap outreach and coding review, running as many concurrent cases. Microsoft publishes a prior authorization multi-agent accelerator as a Foundry template and a healthcare agent orchestrator in the Foundry Agent Catalog.","Capacity planning","Agent fleet runs here. Limits: model tokens per minute and FHIR API throughput."],
+ ["Actions and oversight",false,"Clinician review and submission","A clinician or reviewer approves any order, payer submission or record write-back. Approved changes are written through the FHIR API.","Approval gates and change control"]],
+ rail:[["Identity","Managed identities and SMART scopes per agent group, limited to the FHIR resource types each agent needs."],
+  ["Observability","Agent traces to Application Insights with OpenTelemetry. FHIR service audit logs record every read and write by an agent."]]};
+DOM.sec.svg={src:["Entra ID","Defender XDR","Firewalls (CEF, syslog)","AWS CloudTrail","Okta","Custom apps (_CL tables)"],
+ norm:["Microsoft Sentinel","analytics tier and data lake"],chips:["Authentication","Process Event","Network Session","DNS","Web Session","Audit Event","File Event"],normTag:"ASIM parsers",
+ rules:["1,000 analytic rules","query the ASIM functions"],tools:["Sentinel MCP server","data exploration tools","custom KQL tools"],
+ run:["Microsoft Foundry Agent Service","10 to 20 agent types"],runTag:"plus Security Copilot for a few agents",
+ enf:["Enforcer","Logic Apps approval","protected-account watchlist"],act:["Response actions","Defender, Entra"],
+ id:"Identity: an Entra Agent ID per agent group; own RBAC scope; 5 concurrent Log Analytics queries per identity",
+ obs:"Observability: OpenTelemetry traces to Application Insights; agent sign-ins, queries and actions logged back to Sentinel",fb:"logged back as a log source"};
+DOM.hc.svg={src:["EHR registration","Lab systems (HL7 v2)","Admit, discharge, transfer","Pharmacy, e-prescribing","Bedside and home devices","Radiology, claims"],
+ norm:["Azure Health Data Services","FHIR service (R4)"],chips:["Patient","Observation","Encounter","MedicationRequest","Condition","Procedure","DiagnosticReport"],normTag:"$convert-data, MedTech",
+ rules:["1,000 decision support rules","read FHIR resources"],tools:["FHIR MCP server","SMART Backend Services","ICD-10, NPI, CMS coverage"],
+ run:["Microsoft Foundry Agent Service","prior auth, care gaps, coding"],runTag:"Prior authorization accelerator: 4 hosted agents",
+ enf:["Clinician review","approval before any order","or payer submission"],act:["Approved changes","FHIR write-back, payer"],
+ id:"Identity: managed identities and SMART scopes per agent group, limited to the FHIR resource types each agent needs",
+ obs:"Observability: OpenTelemetry traces to Application Insights; FHIR service audit logs record every agent read and write",fb:"audit logs"};
+let view="fleet";
+function svgArch(v){
+ const t=(x,y,str,o={})=>`<text x="${x}" y="${y}" font-family="Arial" font-size="${o.fs||13}" fill="${o.c||"#05052F"}" ${o.a?`text-anchor="${o.a}"`:""} ${o.b?'font-weight="bold"':""}>${str}</text>`;
+ const lab=(x,y,str)=>t(x,y,str,{fs:11,c:"#555"});
+ let h=`<svg id="archSvg" viewBox="0 0 1300 560" xmlns="http://www.w3.org/2000/svg">
+ <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" fill="#33A7FF"/></marker>
+ <marker id="arN" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" fill="#05052F"/></marker>
+ <marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" fill="#8A8AA3"/></marker></defs>`;
+ // flows first
+ v.src.forEach((_,i)=>{const y=59+i*48;h+=`<path class="flow" d="M210,${y} C245,${y} 240,225 270,225" marker-end="url(#ar)"/>`});
+ h+=`<path class="flow" d="M500,150 C540,150 545,90 578,90" marker-end="url(#ar)"/>`;
+ h+=`<path class="flow" d="M512,255 L578,255" marker-end="url(#ar)"/>`;
+ h+=`<path class="flow" d="M800,245 L858,245" marker-end="url(#ar)"/><path class="flow" d="M858,268 L802,268" marker-end="url(#ar)"/>`;
+ h+=`<path class="flow inc" d="M800,90 C900,90 975,100 975,148" marker-end="url(#arN)"/>`+t(870,82,"incidents",{fs:11,c:"#05052F"});
+ h+=`<path class="flow" d="M1090,220 L1128,220" marker-end="url(#ar)"/><path class="flow" d="M1205,262 L1205,298" marker-end="url(#ar)"/>`;
+ h+=`<path class="flow fb" d="M300,492 L300,345" marker-end="url(#arG)"/>`+t(308,400,v.fb,{fs:11,c:"#555"});
+ h+=t(560,252,"",{});
+ // sources
+ h+=`<g class="hit" data-l="0">`+lab(20,28,"SOURCES");
+ v.src.forEach((n,i)=>{const y=40+i*48;h+=`<rect class="frame" x="20" y="${y}" width="190" height="38" rx="6" fill="#fff" stroke="#DCDCDD"/><rect x="20" y="${y}" width="6" height="38" rx="2" fill="#33A7FF"/>`+t(34,y+24,n,{fs:12.5})});
+ h+=`</g>`;
+ // normalized cylinder
+ h+=`<g class="hit" data-l="1">`+lab(270,92,"NORMALIZED DATA")+`
+ <path class="frame" d="M270,120 L270,330 A120,18 0 0 0 510,330 L510,120" fill="#FBFFE8" stroke="#CAFF00" stroke-width="3"/>
+ <ellipse cx="390" cy="120" rx="120" ry="18" fill="#F2FFC2" stroke="#CAFF00" stroke-width="3"/>`+
+ t(390,160,v.norm[0],{a:"middle",b:1,fs:14})+t(390,177,v.norm[1],{a:"middle",fs:12})+
+ `<rect x="310" y="185" width="160" height="18" rx="9" fill="#05052F"/>`+t(390,198,v.normTag,{a:"middle",fs:11,c:"#fff"});
+ v.chips.forEach((c,i)=>{const col=i%2,row=Math.floor(i/2),x=284+col*114,y=212+row*26;h+=`<rect x="${x}" y="${y}" width="108" height="20" rx="4" fill="#fff" stroke="#33A7FF"/>`+t(x+54,y+14,c,{a:"middle",fs:10.5})});
+ h+=`</g>`;
+ // rule fleet
+ h+=`<g class="hit" data-l="1">`+lab(580,22,"RULE FLEET")+`<rect class="frame" x="580" y="30" width="220" height="120" rx="8" fill="#fff" stroke="#DCDCDD"/>`+t(592,52,v.rules[0],{b:1})+t(592,68,v.rules[1],{fs:11.5,c:"#555"});
+ for(let r=0;r<5;r++)for(let c=0;c<24;c++)h+=`<rect x="${593+c*8.4}" y="${80+r*12}" width="6" height="8" fill="#05052F"/>`;
+ h+=`</g>`;
+ // tools
+ h+=`<g class="hit" data-l="2">`+lab(580,192,"TOOL LAYER (MCP)")+`<rect class="frame" x="580" y="200" width="220" height="110" rx="8" fill="#05052F" stroke="#05052F"/>`+
+  t(690,228,v.tools[0],{a:"middle",c:"#fff",b:1,fs:14});
+ v.tools.slice(1).forEach((c,i)=>{h+=`<rect x="598" y="${242+i*28}" width="184" height="22" rx="11" fill="#001AFF"/>`+t(690,257+i*28,c,{a:"middle",c:"#fff",fs:11.5})});
+ h+=`</g>`;
+ // runtime
+ h+=`<g class="hit" data-l="3">`+lab(860,142,"AGENT RUNTIME")+`<rect class="frame" x="860" y="150" width="230" height="240" rx="8" fill="#F0F7FF" stroke="#33A7FF"/>`+
+  t(975,172,v.run[0],{a:"middle",b:1,fs:12.5})+t(975,188,v.run[1],{a:"middle",fs:11.5,c:"#555"})+
+  `<circle cx="975" cy="214" r="14" fill="#05052F"/>`+t(975,218,"orch",{a:"middle",fs:9.5,c:"#fff"});
+ const ag=[];for(let r=0;r<6;r++)for(let c=0;c<14;c++)ag.push([878+c*14.5,250+r*15]);
+ [3,10,24,31,45,52,66,73].forEach(i=>{h+=`<line x1="975" y1="228" x2="${ag[i][0]}" y2="${ag[i][1]}" stroke="#33A7FF" stroke-width="1"/>`});
+ ag.forEach(([x,y])=>h+=`<circle cx="${x}" cy="${y}" r="4.2" fill="#001AFF"/>`);
+ h+=t(975,354,"many concurrent runs, suspended while waiting",{a:"middle",fs:10.5,c:"#555"})+`<rect x="872" y="362" width="206" height="20" rx="4" fill="#fff" stroke="#DCDCDD"/>`+t(975,376,v.runTag,{a:"middle",fs:9.6})+`</g>`;
+ // enforcer + actions
+ h+=`<g class="hit" data-l="4">`+lab(1130,172,"ACTIONS AND OVERSIGHT")+`<rect class="frame" x="1130" y="180" width="155" height="82" rx="8" fill="#fff" stroke="#DCDCDD"/><rect x="1130" y="180" width="6" height="82" fill="#CAFF00"/>`+
+  t(1144,202,v.enf[0],{b:1})+t(1144,220,v.enf[1],{fs:11})+t(1144,236,v.enf[2],{fs:11})+
+  
+  `<rect class="frame" x="1130" y="300" width="155" height="60" rx="8" fill="#fff" stroke="#DCDCDD"/>`+t(1144,324,v.act[0],{b:1})+t(1144,342,v.act[1],{fs:11})+
+  t(1212,282,"approved",{fs:10.5,c:"#555"})+t(1092,238,"proposed",{fs:10,c:"#555"})+`</g>`;
+ // bands
+ h+=`<g class="hit" data-l="5"><rect class="frame" x="580" y="420" width="705" height="44" rx="6" fill="#F7F8FC" stroke="#05052F"/><rect x="580" y="420" width="6" height="44" fill="#05052F"/>`+t(596,447,v.id,{fs:12})+`</g>`;
+ h+=`<g class="hit" data-l="6"><rect class="frame" x="270" y="492" width="1015" height="44" rx="6" fill="#F7F8FC" stroke="#05052F"/><rect x="270" y="492" width="6" height="44" fill="#05052F"/>`+t(286,519,v.obs,{fs:12})+`</g>`;
+ return h+`</svg>`;}
+function renderArch(){const a=D.arch;
+ const det=a.layers.map((L,i)=>`<details class="det${L[1]?" key":""}" id="det${i}"><summary><span>${L[0]}</span>${L[2]}</summary><div class="in"><p>${L[3]}</p><span class="sk">SIEM skill: ${L[4]}</span>${L[5]?`<div class="side">${L[5]}</div>`:""}</div></details>`).join("")+
+  a.rail.map((r,i)=>`<details class="det" id="det${5+i}"><summary><span>${r[0]}</span>Applies to every layer</summary><div class="in"><p>${r[1]}</p></div></details>`).join("");
+ document.getElementById("archView").innerHTML=svgArch(D.svg)+`<h3 style="margin-top:14px">Layer details</h3>`+det;
+ document.querySelectorAll("#archSvg .hit").forEach(g=>g.addEventListener("click",()=>{const d=document.getElementById("det"+g.dataset.l);d.open=true;d.scrollIntoView({behavior:"smooth",block:"nearest"})}));}
+function applyView(){const f=view==="fleet";
+ document.querySelector(".stage").style.display=f?"":"none";document.getElementById("nums").style.display=f?"":"none";
+ document.getElementById("archView").style.display=f?"none":"";document.querySelectorAll(".fo").forEach(e=>e.style.display=f?"":"none");
+ if(!f)renderArch();}
+let dom="sec",D=DOM.sec,SCH=D.sch;
+const W=1280,Hh=700,cv=document.getElementById("cv"),ctx=cv.getContext("2d");
+const dpr=Math.min(2,window.devicePixelRatio||1);cv.width=W*dpr;cv.height=Hh*dpr;ctx.scale(dpr,dpr);
+const C={navy:"#05052F",blue:"#001AFF",sky:"#33A7FF",pale:"#CBE9FF",lime:"#CAFF00",g2:"#DCDCDD",red:"#C0182B",amber:"#E09A00"};
+const R=1000;            // correlation rules
+let mode="on",N=140,A=1000,drift=null,driftT=0;
+const bandTop=46,bandH=(Hh-70)/7;
+const SX=250,SCX=640,RX=860,GX=W-20;
+let srcDots=[],ruleDots=[],agDots=[],bg=null,parts=[];
+const rnd=(()=>{let s=7;return()=>(s=(s*16807)%2147483647)/2147483647})();
+
+function weightSchema(r){const w=[.24,.2,.18,.1,.1,.1,.08];let a=0;for(let i=0;i<7;i++){a+=w[i];if(r<a)return i}return 6}
+function layout(){
+  srcDots=[];const per=N/7;
+  for(let b=0;b<7;b++){const cols=Math.min(14,Math.ceil(per/4)),rows=Math.ceil(per/cols);
+    for(let k=0;k<per;k++){const cx=k%cols,cy=Math.floor(k/cols);
+      srcDots.push({b,x:SX-cols*9+cx*9+4,y:bandTop+b*bandH+bandH/2-(rows*9)/2+cy*9+4})}}
+  const grid=(n,top,h)=>{const cols=40,rows=25,cw=(GX-RX)/cols,ch=h/rows,out=[];
+    for(let i=0;i<n;i++){const cx=i%cols,cy=Math.floor(i/cols);out.push({x:RX+cx*cw+cw/2,y:top+cy*ch+ch/2,b:weightSchema(((i*7919)%1000)/1000),st:0,t:0})}return out};
+  ruleDots=grid(R,70,270);
+  agDots=grid(Math.min(1000,A),Hh-290,270);
+  drawBg();
+}
+function drawBg(){
+  const o=document.createElement("canvas");o.width=W*dpr;o.height=Hh*dpr;const g=o.getContext("2d");g.scale(dpr,dpr);
+  g.fillStyle="#fff";g.fillRect(0,0,W,Hh);
+  // band labels
+  g.font="12px Arial";
+  for(let b=0;b<7;b++){const y=bandTop+b*bandH;
+    g.fillStyle=b%2?"#FAFBFE":"#F2F6FD";g.fillRect(0,y,SX+24,bandH-2);
+    g.fillStyle=C.navy;g.font="bold 12px Arial";g.fillText(SCH[b][0]+" sources",8,y+16);
+    g.font="11px Arial";g.fillStyle="#555";wrap(g,SCH[b][1],8,y+31,118,13);}
+  g.fillStyle="#555";g.font="12px Arial";
+  g.fillText("RAW SOURCES ("+N+")",8,30);
+  g.fillText(mode==="on"?"NORMALIZATION LAYER ("+D.layer+")":"NO NORMALIZATION LAYER",SCX-80,30);
+  g.fillText(D.rules+" (1,000)",RX,60);
+  g.fillText("AGENTS ("+A.toLocaleString()+(A>1000?", each dot = "+(A/1000).toFixed(1)+" agents":"")+")",RX,Hh-298);
+  // lines
+  g.lineWidth=1;
+  if(mode==="on"){
+    srcDots.forEach(s=>{g.strokeStyle="rgba(51,167,255,.35)";line(g,s.x,s.y,SCX-70,schY(s.b))});
+    [ruleDots,agDots].forEach((arr,ix)=>arr.forEach(d=>{g.strokeStyle=ix?"rgba(0,26,255,.045)":"rgba(5,5,47,.045)";line(g,SCX+70,schY(d.b),d.x,d.y)}));
+  } else {
+    const all=ruleDots.concat(agDots);let drawn=0;const cap=9000;
+    const bySch=[...Array(7)].map((_,b)=>srcDots.filter(s=>s.b===b));
+    const total=all.reduce((a,d)=>a+bySch[d.b].length,0),p=Math.min(1,cap/total);
+    all.forEach((d,i)=>bySch[d.b].forEach(s=>{if(rnd()<p){g.strokeStyle=i<R?"rgba(5,5,47,.05)":"rgba(0,26,255,.05)";line(g,s.x,s.y,d.x,d.y);drawn++}}));
+  }
+  // schema boxes
+  for(let b=0;b<7;b++){const y=schY(b);
+    if(mode==="on"){g.fillStyle=C.navy;round(g,SCX-70,y-17,140,34,6);g.fill();g.fillStyle=C.lime;g.fillRect(SCX-70,y-17,5,34);
+      g.fillStyle="#fff";g.font="12.5px Arial";g.textAlign="center";g.fillText(SCH[b][0],SCX+3,y+4);g.textAlign="left";}
+    else{g.strokeStyle=C.g2;g.setLineDash([4,4]);round(g,SCX-70,y-17,140,34,6);g.stroke();g.setLineDash([]);}}
+  bg=o;
+}
+function wrap(g,t,x,y,w,lh){const ws=t.split(" ");let l="";for(const s of ws){const tt=l?l+" "+s:s;if(g.measureText(tt).width>w){g.fillText(l,x,y);y+=lh;l=s}else l=tt}if(l)g.fillText(l,x,y)}
+const schY=b=>bandTop+b*bandH+bandH/2;
+function line(g,a,b,c,d){g.beginPath();g.moveTo(a,b);g.lineTo(c,d);g.stroke()}
+function round(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath()}
+
+function spawn(){
+  const s=srcDots[Math.floor(Math.random()*srcDots.length)];
+  const pool=Math.random()<.5?ruleDots:agDots,cands=pool.filter(d=>d.b===s.b);if(!cands.length)return;
+  const d=cands[Math.floor(Math.random()*cands.length)];
+  const path=mode==="on"?[[s.x,s.y],[SCX-70,schY(s.b)],[SCX+70,schY(s.b)],[d.x,d.y]]:[[s.x,s.y],[d.x,d.y]];
+  const bad=drift&&s===drift.src;
+  parts.push({path,seg:0,u:0,v:mode==="on"?0.035:0.022,d,bad});
+}
+function step(){
+  for(let i=0;i<(mode==="on"?14:10);i++)spawn();
+  parts=parts.filter(p=>{p.u+=p.v*(p.seg===1&&mode==="on"?3:1);if(p.u>=1){p.u=0;p.seg++;if(p.seg>=p.path.length-1){arrive(p);return false}}return true});
+  [ruleDots,agDots].forEach(arr=>arr.forEach(d=>{if(d.t>0){d.t--;if(!d.t&&d.st!==2)d.st=0}}));
+  if(drift){driftT++;
+    if(mode==="on"&&driftT===90){banner(`Mapping for ${drift.name} updated once. All ${drift.affected.toLocaleString()} consumers of ${SCH[drift.b][0]} are back to normal.`);
+      [ruleDots,agDots].forEach(arr=>arr.forEach(d=>{if(d.st===2){d.st=0}}));drift.fixed=true}}
+}
+function arrive(p){const d=p.d;
+  if(p.bad&&!(drift&&drift.fixed)&&mode==="off"){d.st=2;return}
+  if(p.bad&&!(drift&&drift.fixed)&&mode==="on"){return}
+  if(mode==="off"&&d.st!==2){d.st=1;d.t=18}
+}
+function draw(){
+  ctx.clearRect(0,0,W,Hh);if(bg)ctx.drawImage(bg,0,0,W,Hh);
+  srcDots.forEach(s=>{ctx.fillStyle=drift&&s===drift.src?C.red:C.sky;ctx.fillRect(s.x-3,s.y-3,6,6)});
+  if(drift&&mode==="on"&&!drift.fixed){ctx.strokeStyle=C.red;ctx.lineWidth=2;line(ctx,drift.src.x,drift.src.y,SCX-70,schY(drift.b));ctx.lineWidth=1;}
+  const dot=(arr,base)=>arr.forEach(d=>{ctx.fillStyle=d.st===2?C.red:d.st===1?C.amber:base;ctx.fillRect(d.x-3,d.y-3,6,6)});
+  dot(ruleDots,C.navy);dot(agDots,C.blue);
+  parts.forEach(p=>{const a=p.path[p.seg],b=p.path[p.seg+1];const x=a[0]+(b[0]-a[0])*p.u,y=a[1]+(b[1]-a[1])*p.u;
+    ctx.fillStyle=p.bad&&!(drift&&drift.fixed)?C.red:C.lime;ctx.beginPath();ctx.arc(x,y,2.6,0,6.3);ctx.fill();ctx.strokeStyle="rgba(5,5,47,.5)";ctx.stroke()});
+}
+let bt=null;function banner(t){const e=document.getElementById("banner");e.textContent=t;e.style.display="block";clearTimeout(bt);bt=setTimeout(()=>e.style.display="none",7000)}
+
+function nums(){
+  const per=N/7,cons=R+A;
+  const on={work:N,addAgent:0,addSrc:1,drift:1,interp:0};
+  const sh=[.24,.2,.18,.1,.1,.1,.08][D.driftSch];const off={work:Math.round(cons*per),addAgent:Math.round(per),addSrc:Math.round(cons*sh),drift:Math.round(cons*sh),interp:A};
+  const f=x=>x.toLocaleString();
+  const rows=[
+   ["Integrations to build and maintain",`${f(on.work)}<small>one parser or mapping per source</small>`,`${f(off.work)}<small>every consumer to every source in its schema</small>`],
+   ["Work to add one more agent",`${f(on.addAgent)}<small>agent uses the schema tools as they are</small>`,`${f(off.addAgent)}<small>source-specific integrations for its schema</small>`],
+   [D.addRow,`${f(on.addSrc)}<small>one mapping; all consumers covered</small>`,`${f(off.addSrc)}<small>${D.consRow}</small>`],
+   [D.driftRow,`0<small>${f(on.drift)} mapping fixed, no consumer touched</small>`,`${f(off.drift)}<small>each reads the raw field itself</small>`],
+   ["Agents working out raw formats on every call",`0<small>schema fields are fixed and documented</small>`,`${f(off.interp)}<small>tokens spent and verdicts may differ</small>`]];
+  const cOn=mode==="on"?" cur":"",cOff=mode==="off"?" cur":"";
+  document.getElementById("nums").innerHTML=`<div class="h"></div><div class="h${cOn}">Normalized (${D.layer})</div><div class="h${cOff}">Not normalized</div>`+
+   rows.map((r,i)=>`<div class="${i===rows.length-1?"last":""}">${r[0]}</div><div class="v${cOn}${i===rows.length-1?" last":""}">${r[1]}</div><div class="v${cOff}${i===rows.length-1?" last":""}">${r[2]}</div>`).join("");
+}
+function setA(v){A=Math.round(Math.pow(10,v));if(A>=1000)A=Math.round(A/100)*100;document.getElementById("aV").textContent=A.toLocaleString()}
+function refresh(){N=+document.getElementById("n").value;document.getElementById("nV").textContent=N;setA(+document.getElementById("a").value);drift=null;parts=[];layout();nums()}
+document.querySelectorAll("#mode button").forEach(b=>b.onclick=()=>{mode=b.dataset.m;document.querySelectorAll("#mode button").forEach(x=>x.classList.toggle("on",x===b));refresh()});
+document.getElementById("n").oninput=refresh;document.getElementById("a").oninput=refresh;
+document.getElementById("add").onclick=()=>{const el=document.getElementById("a");const cur=A+1000;el.value=Math.min(4,Math.log10(cur));refresh();
+  banner(mode==="on"?`${A.toLocaleString()} agents. The new 1,000 needed no new parsers or integrations.`:`${A.toLocaleString()} agents. The new 1,000 need about ${(1000*Math.round(N/7)).toLocaleString()} more source-specific integrations.`)};
+document.getElementById("drift").onclick=()=>{
+  const b=D.driftSch,src=srcDots.find(s=>s.b===b);
+  const real=Math.round((R+A)*[.24,.2,.18,.1,.1,.1,.08][b]);
+  drift={b,src,name:D.driftSrc,affected:real,fixed:false};driftT=0;
+  banner(mode==="on"?D.driftOn:D.driftOff(real.toLocaleString()));
+  if(mode==="off")[ruleDots,agDots].forEach(arr=>arr.forEach(d=>{if(d.b===b&&Math.random()<.85){d.st=2}}));
+};
+document.getElementById("clear").onclick=()=>{drift=null;[ruleDots,agDots].forEach(arr=>arr.forEach(d=>{d.st=0;d.t=0}));document.getElementById("banner").style.display="none"};
+function fillText(){document.getElementById("sub").textContent=D.sub;document.getElementById("tblH").textContent=D.tblH;
+  document.getElementById("thR").textContent=D.thR;document.getElementById("thA").textContent=D.thA;
+  document.getElementById("tbl").innerHTML=D.rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("");
+  document.getElementById("note").textContent=D.note;}
+document.querySelectorAll("#dom button").forEach(b=>b.onclick=()=>{dom=b.dataset.d;D=DOM[dom];SCH=D.sch;document.querySelectorAll("#dom button").forEach(x=>x.classList.toggle("on",x===b));fillText();refresh();applyView()});
+document.querySelectorAll("#view button").forEach(b=>b.onclick=()=>{view=b.dataset.v;document.querySelectorAll("#view button").forEach(x=>x.classList.toggle("on",x===b));applyView()});
+fillText();refresh();
+(function loop(){step();draw();requestAnimationFrame(loop)})();
+</script>
+</body>
+</html>
